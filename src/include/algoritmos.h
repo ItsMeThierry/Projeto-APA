@@ -2,8 +2,14 @@
 #define ALGORITMOS_H
 
 #include "structures.h"
+#include <climits>
 #include <vector>
+#include <list>
 #include <iostream>
 
-void algoritmo_1(const voo* voos, int** matrix, int num_voos, int num_pistas);
+void algoritmo_guloso(solucao &sol, voo* voos, int** matrix, int num_voos, int num_pistas);
+
+
+solucao two_opt(solucao sol, int**matrix, int num_pistas);
+
 #endif
