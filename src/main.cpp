@@ -156,9 +156,9 @@ int main(){
 
     escrever_output(sol, dados.num_pistas, "guloso");
 
-    solucao sol_2 = two_opt(sol, dados.matrix, dados.num_pistas);
+    solucao sol_2 = vnd(sol, dados.matrix, dados.num_pistas);
 
-    escrever_output(sol_2, dados.num_pistas, "opt");
+    escrever_output(sol_2, dados.num_pistas, "vnd");
 
     return 0;
 }
