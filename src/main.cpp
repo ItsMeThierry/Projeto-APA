@@ -138,6 +138,7 @@ int main(){
 
         try{
             ler_arquivo("input/instancias/" + s + ".txt", dados);
+            //ler_arquivo("input/copa_apa/" + s + ".txt", dados);
         } catch (int e){
             return e;
         }
@@ -158,7 +159,7 @@ int main(){
         }
 
         solucao sol;
-
+        
         algoritmo_guloso(sol, voos_1, dados.matrix, dados.num_voos, dados.num_pistas);
 
         escrever_output(sol, dados.num_pistas, "guloso");
