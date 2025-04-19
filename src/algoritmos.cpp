@@ -10,6 +10,14 @@ void algoritmo_guloso(solucao &sol, voo* voos, int** matrix, int num_voos, int n
                 voos[j-1] = voos[j];
                 voos[j] = aux;
             }
+
+            if(voos[j-1].t_decolagem == voos[j].t_decolagem){
+                if(voos[j-1].multa < voos[j].multa){
+                    voo aux = voos[j-1];
+                    voos[j-1] = voos[j];
+                    voos[j] = aux;
+                }
+            }
         }
     }
 
@@ -67,7 +75,7 @@ void algoritmo_guloso(solucao &sol, voo* voos, int** matrix, int num_voos, int n
     sol.multa = multa;
 }
 
-solucao two_opt(solucao sol, int**matrix, int num_pistas){
+void two_opt(solucao &sol, int**matrix, int num_pistas){
     for(int i = 0; i < num_pistas; i++){
         int size = sol.pistas[i].size();
 
@@ -136,8 +144,6 @@ solucao two_opt(solucao sol, int**matrix, int num_pistas){
             sol.multa += menor_multa;
         }
     }
-
-    return sol;
 }
 
 void re_insertion(solucao &sol, int** matriz, int num_pistas) {
@@ -228,16 +234,110 @@ void re_insertion(solucao &sol, int** matriz, int num_pistas) {
     }
 }
 
+// int calcularMultaTotal(const vector<int>& sequencia, const vector<Voo>& voos,
+//                       const vector<vector<int>>& tempos_espera) {
+//     int horario = 0;
+//     int multaTotal = 0;
+    
+//     for (size_t i = 0; i < sequencia.size(); i++) {
+//         if (i > 0) {
+//             horario += voos[sequencia[i-1]].getDuracao() + tempos_espera[sequencia[i-1]-1][sequencia[i]-1];
+//         }
+//         if (horario < voos[sequencia[i]].getTDecolagem()) {
+//             horario = voos[sequencia[i]].getTDecolagem();
+//         }
+        
+//         multaTotal += voos[sequencia[i]].getMulta() * (horario - voos[sequencia[i]].getTDecolagem());
+//     }
+
+//     return multaTotal;
+// }
+
+void swap(solucao &sol, int**matrix, int num_pistas) {
+
+    // int multaAtual = calcularMultaTotal(sequenciaAtual, voos, tempos_espera);
+    for(int i = 0; i < num_pistas; i++){
+        int size = sol.pistas[i].size();
+
+        if(size == 1){
+            continue;
+        }
+
+        int multa_antes = 0;
+        for(int v = 0, t = 0; v < size; v++){
+            if(v > 0) t += matrix[sol.pistas[i][v-1].id - 1][sol.pistas[i][v].id - 1];
+            if(t < sol.pistas[i][v].t_decolagem){ t += sol.pistas[i][v].t_decolagem - t; }
+            else if(t > sol.pistas[i][v].t_decolagem){ multa_antes += sol.pistas[i][v].multa * (t - sol.pistas[i][v].t_decolagem); }
+            t += sol.pistas[i][v].duracao;
+        }
+
+        int multaAtual = multa_antes;
+
+        bool melhorou = true;
+        std::vector<voo> melhorSequencia = sol.pistas[i];
+
+        while (melhorou) {
+            melhorou = false;
+            for (int j = 0; j < size - 1; j++) {
+                for (int k = j+1; k < size; k++){
+                    std::vector<voo> novaSequencia = sol.pistas[i];
+                    std::swap(novaSequencia[j], novaSequencia[k]);
+
+                    // int novaMulta = calcularMultaTotal(novaSequencia, voos, tempos_espera);
+                    int novaMulta = 0;
+
+                    // std::cout << "NO LOOP\n";
+                    // for(voo v : novaSequencia){
+                    //     std::cout << "V" << v.id << ' ';
+                    // }
+
+                    // std::cout << '\n';
+
+                    for(int v = 0, t = 0; v < size; v++){
+                        if(v > 0) t += matrix[novaSequencia[v-1].id - 1][novaSequencia[v].id - 1];
+                        if(t < novaSequencia[v].t_decolagem){ t += novaSequencia[v].t_decolagem - t; }
+                        else if(t > novaSequencia[v].t_decolagem){ novaMulta += novaSequencia[v].multa * (t - novaSequencia[v].t_decolagem); }
+                        t += novaSequencia[v].duracao;
+                    }
+
+                    if (novaMulta < multaAtual) {
+                        melhorSequencia.empty();
+                        melhorSequencia = novaSequencia;
+                        multaAtual = novaMulta;
+                        melhorou = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // std::cout << "MELHOR\n";
+        // for(voo v : melhorSequencia){
+        //     std::cout << "V" << v.id << ' ';
+        // }
+
+        // std::cout << std::endl;
+
+        sol.multa -= multa_antes;
+        sol.multa += multaAtual;
+        sol.pistas[i] = melhorSequencia;
+    }
+
+}
+
 solucao vnd(solucao otimo, int**matrix, int num_pistas){
     int k = 1;
     int menor_multa = otimo.multa;
 
-    while(k <= 2){
+    while(k <= 3){
         switch(k){
             case 1:
                 re_insertion(otimo, matrix, num_pistas);
                 break;
             case 2:
+                swap(otimo, matrix, num_pistas);
+                break;
+            case 3:
                 two_opt(otimo, matrix, num_pistas);
                 break;
         }
@@ -248,11 +348,18 @@ solucao vnd(solucao otimo, int**matrix, int num_pistas){
         }else{
             k++;
         }
-
-        if(menor_multa < 0){
-            break;
-        }
     }
 
     return otimo;
 }
+
+// solucao ils(solucao &sol, voo* voos, int** matrix, int num_voos, int num_pistas){
+//     // algoritmo_guloso(sol, voos, matrix, num_voos, num_pistas);
+//     // solucao s = vnd(sol, matrix, num_pistas);
+
+
+// }
+
+// void pertubacao(){
+//     //cria um array para ordenar os indices das pistas que tiverem menor quantidade de voos para a maior quantidade de voos
+// }
