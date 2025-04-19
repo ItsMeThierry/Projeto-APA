@@ -140,77 +140,87 @@ solucao two_opt(solucao sol, int**matrix, int num_pistas){
     return sol;
 }
 
-void re_insertion(solucao &sol, int** matrix, int num_pistas) {
+void re_insertion(solucao &sol, int** matriz, int num_pistas) {
     for(int i = 0; i < num_pistas; i++) {
-        int size = sol.pistas[i].size();
-
-        if (size < 2){
-            continue;
+        int tamanho = sol.pistas[i].size();
+        
+        if(tamanho < 2) {
+            continue; 
         }
 
         int menor_multa = 0;
 
-        for(int v = 0, t = 0; v < size; v++){
-            if(v > 0) t += matrix[sol.pistas[i][v-1].id - 1][sol.pistas[i][v].id - 1];
+        for(int v = 0, t = 0; v < tamanho; v++){
+            if(v > 0) t += matriz[sol.pistas[i][v-1].id - 1][sol.pistas[i][v].id - 1];
             if(t < sol.pistas[i][v].t_decolagem){ t += sol.pistas[i][v].t_decolagem - t; }
             else if(t > sol.pistas[i][v].t_decolagem){ menor_multa += sol.pistas[i][v].multa * (t - sol.pistas[i][v].t_decolagem); }
             t += sol.pistas[i][v].duracao;
         }
 
         int multa_antes = menor_multa;
-        int candidato = -1;
-        int empurrado = -1;
+        int melhor_pos_mover = -1;
+        int melhor_nova_pos = -1;
 
-        for(int j = size - 1; j >= 0; j--){
-            for(int k = j - 1; k >= 0; k--){
+        for(int pos_mover = 0; pos_mover < tamanho; pos_mover++) {
+            for(int nova_pos = 0; nova_pos < tamanho; nova_pos++) {
+                if(nova_pos == pos_mover || nova_pos == pos_mover + 1) {
+                    continue;
+                }
+
                 int multa = 0;
-                int t = 0;
+                int tempo = 0;
+                std::vector<voo> pista_temp;
 
-                for(int v = 0; v < k; v++){
-                    if(v > 0) t += matrix[sol.pistas[i][v-1].id - 1][sol.pistas[i][v].id - 1];
-
-                    if(t < sol.pistas[i][v].t_decolagem){ t += sol.pistas[i][v].t_decolagem - t; }
-                    else if(t > sol.pistas[i][v].t_decolagem){ multa += sol.pistas[i][v].multa * (t - sol.pistas[i][v].t_decolagem); }
-                    t += sol.pistas[i][v].duracao;
+                if(nova_pos < pos_mover) {
+                    for(int j = 0; j < nova_pos; j++) {
+                        if(j != pos_mover) pista_temp.push_back(sol.pistas[i][j]);
+                    }
+                    pista_temp.push_back(sol.pistas[i][pos_mover]);
+                    for(int j = nova_pos; j < tamanho; j++) {
+                        if(j != pos_mover) pista_temp.push_back(sol.pistas[i][j]);
+                    }
+                } else {
+                    for(int j = 0; j < pos_mover; j++) {
+                        pista_temp.push_back(sol.pistas[i][j]);
+                    }
+                    for(int j = pos_mover + 1; j < nova_pos; j++) {
+                        pista_temp.push_back(sol.pistas[i][j]);
+                    }
+                    pista_temp.push_back(sol.pistas[i][pos_mover]);
+                    for(int j = nova_pos; j < tamanho; j++) {
+                        pista_temp.push_back(sol.pistas[i][j]);
+                    }
                 }
 
-                if (k > 0) t += matrix[sol.pistas[i][k-1].id - 1][sol.pistas[i][j].id - 1];
-
-                if(t < sol.pistas[i][j].t_decolagem){ t += sol.pistas[i][j].t_decolagem - t; }
-                else if(t > sol.pistas[i][j].t_decolagem){ multa += sol.pistas[i][j].multa * (t - sol.pistas[i][j].t_decolagem); }
-                t += sol.pistas[i][j].duracao;
-
-                for(int v = k; v < size; v++){
-                    if(v == j){
-                        continue;
+                for(int j = 0; j < tamanho; j++) {
+                    if(j > 0) {
+                        tempo += matriz[pista_temp[j-1].id - 1][pista_temp[j].id - 1];
                     }
-
-                    if(v == k){
-                        t += matrix[sol.pistas[i][j].id - 1][sol.pistas[i][v].id - 1];
-                    } else if(v == j + 1){
-                        t += matrix[sol.pistas[i][v-2].id - 1][sol.pistas[i][v].id - 1];
-                    } else{
-                        t += matrix[sol.pistas[i][v-1].id - 1][sol.pistas[i][v].id - 1];
+                    if(tempo < pista_temp[j].t_decolagem) {
+                        tempo += pista_temp[j].t_decolagem - tempo;
+                    } else if(tempo > pista_temp[j].t_decolagem) {
+                        multa += pista_temp[j].multa * (tempo - pista_temp[j].t_decolagem);
                     }
-
-                    if(t < sol.pistas[i][v].t_decolagem){ t += sol.pistas[i][v].t_decolagem - t;}
-                    else if(t > sol.pistas[i][v].t_decolagem){ multa += sol.pistas[i][v].multa * (t - sol.pistas[i][v].t_decolagem);}
-                    t += sol.pistas[i][v].duracao;
+                    tempo += pista_temp[j].duracao;
                 }
 
-                if(multa < menor_multa){
+                if(multa < menor_multa) {
                     menor_multa = multa;
-                    candidato = j;
-                    empurrado = k;
+                    melhor_pos_mover = pos_mover;
+                    melhor_nova_pos = nova_pos;
                 }
-
             }
         }
 
-        if(candidato != -1 && empurrado != -1){
-            voo voo_transferido = sol.pistas[i][candidato];
-            sol.pistas[i].erase(sol.pistas[i].begin() + candidato);
-            sol.pistas[i].insert(sol.pistas[i].begin() + empurrado, voo_transferido);
+        if(melhor_pos_mover != -1) {
+            voo voo_movido = sol.pistas[i][melhor_pos_mover];
+            sol.pistas[i].erase(sol.pistas[i].begin() + melhor_pos_mover);
+            
+            if(melhor_nova_pos > melhor_pos_mover) {
+                sol.pistas[i].insert(sol.pistas[i].begin() + melhor_nova_pos - 1, voo_movido);
+            } else {
+                sol.pistas[i].insert(sol.pistas[i].begin() + melhor_nova_pos, voo_movido);
+            }
 
             sol.multa -= multa_antes;
             sol.multa += menor_multa;
