@@ -75,6 +75,18 @@ void algoritmo_guloso(solucao &sol, voo* voos, int** matrix, int num_voos, int n
     sol.multa = multa;
 }
 
+int calcula_multa_pista(std::vector<voo> &pista, int** matrix){
+    int multa = 0;
+    for(uint32_t i = 0, t = 0; i < pista.size(); i++){
+        if(i > 0) t += matrix[pista[i-1].id - 1][pista[i].id - 1];
+        if(t < pista[i].t_decolagem){ t += pista[i].t_decolagem - t; }
+        else if(t > pista[i].t_decolagem){ multa += pista[i].multa * (t - pista[i].t_decolagem); }
+        t += pista[i].duracao;
+    }
+
+    return multa;
+}
+
 void two_opt(solucao &sol, int**matrix, int num_pistas){
     for(int i = 0; i < num_pistas; i++){
         int size = sol.pistas[i].size();
@@ -132,8 +144,8 @@ void two_opt(solucao &sol, int**matrix, int num_pistas){
 
         if(pos_inicial != -1){
             voo aux;
-            std::cout << pos_inicial << std::endl;
-            std::cout << pos_final << std::endl;
+            // std::cout << pos_inicial << std::endl;
+            // std::cout << pos_final << std::endl;
             for(int c = 0; pos_inicial+c < pos_final-c; c++){
                 aux = sol.pistas[i][pos_inicial+c];
                 sol.pistas[i][pos_inicial+c] = sol.pistas[i][pos_final-1-c];
@@ -234,28 +246,8 @@ void re_insertion(solucao &sol, int** matriz, int num_pistas) {
     }
 }
 
-// int calcularMultaTotal(const vector<int>& sequencia, const vector<Voo>& voos,
-//                       const vector<vector<int>>& tempos_espera) {
-//     int horario = 0;
-//     int multaTotal = 0;
-    
-//     for (size_t i = 0; i < sequencia.size(); i++) {
-//         if (i > 0) {
-//             horario += voos[sequencia[i-1]].getDuracao() + tempos_espera[sequencia[i-1]-1][sequencia[i]-1];
-//         }
-//         if (horario < voos[sequencia[i]].getTDecolagem()) {
-//             horario = voos[sequencia[i]].getTDecolagem();
-//         }
-        
-//         multaTotal += voos[sequencia[i]].getMulta() * (horario - voos[sequencia[i]].getTDecolagem());
-//     }
-
-//     return multaTotal;
-// }
-
 void swap(solucao &sol, int**matrix, int num_pistas) {
 
-    // int multaAtual = calcularMultaTotal(sequenciaAtual, voos, tempos_espera);
     for(int i = 0; i < num_pistas; i++){
         int size = sol.pistas[i].size();
 
@@ -263,14 +255,7 @@ void swap(solucao &sol, int**matrix, int num_pistas) {
             continue;
         }
 
-        int multa_antes = 0;
-        for(int v = 0, t = 0; v < size; v++){
-            if(v > 0) t += matrix[sol.pistas[i][v-1].id - 1][sol.pistas[i][v].id - 1];
-            if(t < sol.pistas[i][v].t_decolagem){ t += sol.pistas[i][v].t_decolagem - t; }
-            else if(t > sol.pistas[i][v].t_decolagem){ multa_antes += sol.pistas[i][v].multa * (t - sol.pistas[i][v].t_decolagem); }
-            t += sol.pistas[i][v].duracao;
-        }
-
+        int multa_antes = calcula_multa_pista(sol.pistas[i], matrix);
         int multaAtual = multa_antes;
 
         bool melhorou = true;
@@ -283,22 +268,7 @@ void swap(solucao &sol, int**matrix, int num_pistas) {
                     std::vector<voo> novaSequencia = sol.pistas[i];
                     std::swap(novaSequencia[j], novaSequencia[k]);
 
-                    // int novaMulta = calcularMultaTotal(novaSequencia, voos, tempos_espera);
-                    int novaMulta = 0;
-
-                    // std::cout << "NO LOOP\n";
-                    // for(voo v : novaSequencia){
-                    //     std::cout << "V" << v.id << ' ';
-                    // }
-
-                    // std::cout << '\n';
-
-                    for(int v = 0, t = 0; v < size; v++){
-                        if(v > 0) t += matrix[novaSequencia[v-1].id - 1][novaSequencia[v].id - 1];
-                        if(t < novaSequencia[v].t_decolagem){ t += novaSequencia[v].t_decolagem - t; }
-                        else if(t > novaSequencia[v].t_decolagem){ novaMulta += novaSequencia[v].multa * (t - novaSequencia[v].t_decolagem); }
-                        t += novaSequencia[v].duracao;
-                    }
+                    int novaMulta = calcula_multa_pista(novaSequencia, matrix);
 
                     if (novaMulta < multaAtual) {
                         melhorSequencia.empty();
@@ -311,18 +281,16 @@ void swap(solucao &sol, int**matrix, int num_pistas) {
             }
         }
 
-        // std::cout << "MELHOR\n";
-        // for(voo v : melhorSequencia){
-        //     std::cout << "V" << v.id << ' ';
-        // }
-
-        // std::cout << std::endl;
-
         sol.multa -= multa_antes;
         sol.multa += multaAtual;
         sol.pistas[i] = melhorSequencia;
     }
 
+}
+
+void swap_pistas(solucao &sol, int**matrix, int num_pistas){
+    
+    for
 }
 
 solucao vnd(solucao otimo, int**matrix, int num_pistas){
