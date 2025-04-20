@@ -7,7 +7,7 @@
 #include <list>
 #include <iostream>
 
-void algoritmo_guloso(solucao &sol, voo* voos, int** matrix, int num_voos, int num_pistas);
+solucao algoritmo_guloso(solucao sol, voo* voos, int** matrix, int num_voos, int num_pistas);
 
 int calcula_multa_pista(std::vector<voo> &pista, int**matrix);
 
@@ -19,6 +19,7 @@ void swap_pistas(solucao &sol, int**matrix, int num_pistas);
 
 solucao vnd(solucao otimo, int**matrix, int num_pistas);
 
-// solucao ils(solucao &sol, voo* voos, int** matrix, int num_voos, int num_pistas);
+solucao ils(solucao s, int** matrix, int num_pistas);
+solucao pertubacao(solucao sol, int shift, int**matrix, int num_pistas);
 
 #endif

@@ -1,6 +1,6 @@
 #include "include/algoritmos.h"
 
-void algoritmo_guloso(solucao &sol, voo* voos, int** matrix, int num_voos, int num_pistas){
+solucao algoritmo_guloso(solucao sol, voo* voos, int** matrix, int num_voos, int num_pistas){
 
     // Insertion sort, organizando o vetor de voos por ordem crescente de decolagem
     for(int i = 1; i < num_voos; i++){
@@ -73,6 +73,8 @@ void algoritmo_guloso(solucao &sol, voo* voos, int** matrix, int num_voos, int n
     }
 
     sol.multa = multa;
+
+    return sol;
 }
 
 int calcula_multa_pista(std::vector<voo> &pista, int** matrix){
@@ -470,19 +472,19 @@ solucao vnd(solucao otimo, int**matrix, int num_pistas){
     while(k <= 5){
         switch(k){
             case 1:
-                re_insertion(otimo, matrix, num_pistas);
+                re_insertion2(otimo, matrix, num_pistas);
                 break;
             case 2:
-                swap(otimo, matrix, num_pistas);
-                break;
-            case 3:
-                two_opt(otimo, matrix, num_pistas);
-                break;
-            case 4:
                 swap_pistas(otimo, matrix, num_pistas);
                 break;
+            case 3:
+                re_insertion(otimo, matrix, num_pistas);
+                break;
+            case 4:
+                swap(otimo, matrix, num_pistas);
+                break;
             case 5:
-                re_insertion2(otimo, matrix, num_pistas);
+                two_opt(otimo, matrix, num_pistas);
                 break;
         }
 
@@ -497,13 +499,56 @@ solucao vnd(solucao otimo, int**matrix, int num_pistas){
     return otimo;
 }
 
-// solucao ils(solucao &sol, voo* voos, int** matrix, int num_voos, int num_pistas){
-//     // algoritmo_guloso(sol, voos, matrix, num_voos, num_pistas);
-//     // solucao s = vnd(sol, matrix, num_pistas);
+solucao ils(solucao s, int** matrix, int num_pistas){
+    int tentativa = 1;
+    while(tentativa < num_pistas){
+        solucao sp = pertubacao(s, tentativa, matrix, num_pistas);
+        solucao sp_ = vnd(sp, matrix, num_pistas);
 
+        if(sp_.multa < s.multa){
+            s = sp_;
+        } else{
+            tentativa++;
+        }
 
-// }
+        if(s.multa < 0){
+            break;
+        }
+    }
 
-// void pertubacao(){
-//     //cria um array para ordenar os indices das pistas que tiverem menor quantidade de voos para a maior quantidade de voos
-// }
+    return s;
+}
+
+solucao pertubacao(solucao sol, int shift, int**matrix, int num_pistas){
+    if(num_pistas == 1){
+        return sol;
+    }
+
+    std::vector<voo> v;
+
+    for(int i = 0; i < num_pistas; i++){
+        if(sol.pistas[i].size() > 0){
+            v.push_back(sol.pistas[i].front());
+            sol.pistas[i].erase(sol.pistas[i].begin());
+        }
+
+        if(sol.pistas[i].size() > 0){
+            v.push_back(sol.pistas[i].front());
+            sol.pistas[i].erase(sol.pistas[i].begin());
+        }
+    }
+
+    for(int i = 0; i < num_pistas; i++){
+        sol.pistas[i].insert(sol.pistas[i].begin(), v[(i + shift) % num_pistas]);
+        sol.pistas[i].insert(sol.pistas[i].begin(), v[(i + shift + 1) % num_pistas]);
+    }
+
+    int multa = 0;
+    for(int i = 0; i < num_pistas; i++){
+        multa += calcula_multa_pista(sol.pistas[i], matrix);
+    }
+
+    sol.multa = multa;
+    
+    return sol;
+}
