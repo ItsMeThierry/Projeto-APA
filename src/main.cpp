@@ -235,5 +235,14 @@ int main(){
                   << std::right << std::setprecision(3) << std::setw(9) << gap << std::endl; 
     }
 
+    std::cout << std::endl;
+
+    float media = 0;
+    for(uint32_t i = 0; i < valores_otimos.size(); i++){
+        media += ((float)(valores_otimos[i]-valores_ILS[i])/valores_otimos[i])*100.00f;
+    }
+
+    std::cout << media/valores_otimos.size() << std::endl;
+
     return 0;
 }

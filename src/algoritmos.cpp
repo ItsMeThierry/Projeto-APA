@@ -147,8 +147,6 @@ void two_opt(solucao &sol, int**matrix, int num_pistas){
 
         if(pos_inicial != -1){
             voo aux;
-            // std::cout << pos_inicial << std::endl;
-            // std::cout << pos_final << std::endl;
             for(int c = 0; pos_inicial+c < pos_final-c; c++){
                 aux = sol.pistas[i][pos_inicial+c];
                 sol.pistas[i][pos_inicial+c] = sol.pistas[i][pos_final-1-c];
@@ -524,23 +522,23 @@ solucao pertubacao(solucao sol, int shift, int**matrix, int num_pistas){
         return sol;
     }
 
-    std::vector<voo> v;
+    std::vector<voo> voos_deslocados[num_pistas];
 
     for(int i = 0; i < num_pistas; i++){
-        if(sol.pistas[i].size() > 0){
-            v.push_back(sol.pistas[i].front());
-            sol.pistas[i].erase(sol.pistas[i].begin());
-        }
-
-        if(sol.pistas[i].size() > 0){
-            v.push_back(sol.pistas[i].front());
-            sol.pistas[i].erase(sol.pistas[i].begin());
+        for(int j = 0; j < 3; j++){
+            if(sol.pistas[i].size() > 0){
+                voos_deslocados[i].push_back(sol.pistas[i].front());
+                sol.pistas[i].erase(sol.pistas[i].begin());
+            }
         }
     }
 
     for(int i = 0; i < num_pistas; i++){
-        sol.pistas[i].insert(sol.pistas[i].begin(), v[(i + shift) % num_pistas]);
-        sol.pistas[i].insert(sol.pistas[i].begin(), v[(i + shift + 1) % num_pistas]);
+        int size = voos_deslocados[(i+shift+1) % num_pistas].size();
+
+        for(int j = size - 1; j >= 0; j--){
+            sol.pistas[i].insert(sol.pistas[i].begin(), voos_deslocados[(i+shift+1) % num_pistas][j]);
+        }
     }
 
     int multa = 0;
