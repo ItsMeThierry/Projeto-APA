@@ -17,7 +17,6 @@ void re_insertion2(solucao& sol, int** matriz, int num_pistas);
 void swap(solucao &sol, int**matrix, int num_pistas);
 void swap_pistas(solucao &sol, int**matrix, int num_pistas);
 
-int calcular_multa_pista(const std::vector<voo>& pista, int** matriz);
 solucao vnd(solucao otimo, int**matrix, int num_pistas);
 
 // solucao ils(solucao &sol, voo* voos, int** matrix, int num_voos, int num_pistas);

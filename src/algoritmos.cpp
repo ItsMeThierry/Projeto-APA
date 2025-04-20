@@ -77,7 +77,8 @@ void algoritmo_guloso(solucao &sol, voo* voos, int** matrix, int num_voos, int n
 
 int calcula_multa_pista(std::vector<voo> &pista, int** matrix){
     int multa = 0;
-    for(uint32_t i = 0, t = 0; i < pista.size(); i++){
+    int size = pista.size();
+    for(int  i = 0, t = 0; i < size; i++){
         if(i > 0) t += matrix[pista[i-1].id - 1][pista[i].id - 1];
         if(t < pista[i].t_decolagem){ t += pista[i].t_decolagem - t; }
         else if(t > pista[i].t_decolagem){ multa += pista[i].multa * (t - pista[i].t_decolagem); }
@@ -247,7 +248,6 @@ void re_insertion(solucao &sol, int** matriz, int num_pistas) {
 }
 
 void swap(solucao &sol, int**matrix, int num_pistas) {
-
     for(int i = 0; i < num_pistas; i++){
         int size = sol.pistas[i].size();
 
@@ -288,21 +288,100 @@ void swap(solucao &sol, int**matrix, int num_pistas) {
 
 }
 
-int calcular_multa_pista(const std::vector<voo>& pista, int** matriz) {
-    int multa = 0;
-    int tempo = 0;
-    for (size_t v = 0; v < pista.size(); ++v) {
-        if (v > 0) {
-            tempo += matriz[pista[v - 1].id - 1][pista[v].id - 1];
-        }
-        if (tempo < pista[v].t_decolagem) {
-            tempo = pista[v].t_decolagem;
-        } else if (tempo > pista[v].t_decolagem) {
-            multa += pista[v].multa * (tempo - pista[v].t_decolagem);
-        }
-        tempo += pista[v].duracao;
+void swap_pistas(solucao &sol, int**matrix, int num_pistas){
+
+    // Cria um array auxiliar para indicar pistas que já sofreram swap
+    bool swaped[num_pistas];
+
+    for(int i = 0; i < num_pistas; i++){
+        swaped[i] = false;
     }
-    return multa;
+
+    // Pra cada pista, seleciona pra ser a 1ª pista selecionada pro swap
+    for(int i = 0; i < num_pistas; i++){
+        if(swaped[i]){
+            continue;
+        }
+
+        int size_p1 = sol.pistas[i].size();
+        int multa_p1_antes = calcula_multa_pista(sol.pistas[i], matrix);
+
+        int multa_original = 0; // Como era a soma da multa das duas pistas antes do swap
+        int p2 = -1; // O indice da 2ª pista selecionada pro swap
+        int v1 = -1; // O indice do voo da 1ª pista selecionada pro swap
+        int v2 = -1; // O indice do voo da 2ª pista selecionada pro swap
+        int menor_multa = INT_MAX; // Menor multa possivel
+
+        // Pra cada voo selecionado na 1ª pista selecionada
+        for(int pos_1 = 0; pos_1 < size_p1; pos_1++){
+            // Pra cada outra pista, seleciona pra ser a 2ª pista selecionada pro swap
+            for(int j = 0; j < num_pistas; j++){
+                if(swaped[j] || j == i){
+                    continue;
+                }
+
+                int size_p2 = sol.pistas[j].size();
+
+                // Calcula como era a multa antes na 2ª pista selecionada
+                int multa_p2_antes = calcula_multa_pista(sol.pistas[j], matrix);
+
+                // Pra cada voo k na 2ª pista selecionada
+                for(int pos_2 = 0; pos_2 < size_p2; pos_2++){
+                    int m = 0;
+
+                    // Calcula a multa do swap na 1ª pista selecionada
+                    for(int v = 0, t = 0; v < size_p1; v++){
+                        if(v != pos_1){
+                            if(v > 0) t += (v-1 == pos_1) ? matrix[sol.pistas[j][pos_2].id - 1][sol.pistas[i][v].id - 1] : matrix[sol.pistas[i][v-1].id - 1][sol.pistas[i][v].id - 1];
+                            if(t < sol.pistas[i][v].t_decolagem){ t += sol.pistas[i][v].t_decolagem - t; }
+                            else if(t > sol.pistas[i][v].t_decolagem){ m += sol.pistas[i][v].multa * (t - sol.pistas[i][v].t_decolagem); }
+                            t += sol.pistas[i][v].duracao;
+                        } else{
+                            if(v > 0) t += matrix[sol.pistas[i][v-1].id - 1][sol.pistas[j][pos_2].id - 1];
+                            if(t < sol.pistas[j][pos_2].t_decolagem){ t += sol.pistas[j][pos_2].t_decolagem - t; }
+                            else if(t > sol.pistas[j][pos_2].t_decolagem){ m += sol.pistas[j][pos_2].multa * (t - sol.pistas[j][pos_2].t_decolagem);}
+                            t += sol.pistas[j][pos_2].duracao;
+                        }
+                    }
+
+                    // Calcula a multa do swap na 2ª pista selecionada
+                    for(int v = 0, t = 0; v < size_p2; v++){
+                        if(v != pos_2){
+                            if(v > 0) t += (v-1 == pos_2) ? matrix[sol.pistas[i][pos_1].id - 1][sol.pistas[j][v].id - 1] : matrix[sol.pistas[j][v-1].id - 1][sol.pistas[j][v].id - 1];
+                            if(t < sol.pistas[j][v].t_decolagem){ t += sol.pistas[j][v].t_decolagem - t; }
+                            else if(t > sol.pistas[j][v].t_decolagem){ m += sol.pistas[j][v].multa * (t - sol.pistas[j][v].t_decolagem); }
+                            t += sol.pistas[j][v].duracao;
+                        } else{
+                            if(v > 0) t += matrix[sol.pistas[j][v-1].id - 1][sol.pistas[i][pos_1].id - 1];
+                            if(t < sol.pistas[i][pos_1].t_decolagem){ t += sol.pistas[i][pos_1].t_decolagem - t; }
+                            else if(t > sol.pistas[i][pos_1].t_decolagem){ m += sol.pistas[i][pos_1].multa * (t - sol.pistas[i][pos_1].t_decolagem); }
+                            t += sol.pistas[i][pos_1].duracao;
+                        }
+                    }
+
+                    // Se a multa do swap for a menor encontrada pra solução, salva os dados para realizar o swap
+                    if(m < menor_multa){
+                        menor_multa = m;
+                        v2 = pos_2;
+                        v1 = pos_1;
+                        p2 = j;
+                        multa_original = multa_p1_antes + multa_p2_antes;
+                    }
+                }
+            }
+        }
+
+        // Realiza o swap de fato
+        if(v1 != -1 && v2 != -1){
+            std::swap(sol.pistas[i][v1], sol.pistas[p2][v2]);
+            sol.multa -= multa_original;
+            sol.multa += menor_multa;
+            swaped[p2] = true;
+        }
+
+        swaped[i] = true;
+    }
+
 }
 
 void re_insertion2(solucao &sol, int** matriz, int num_pistas) {
@@ -318,19 +397,19 @@ void re_insertion2(solucao &sol, int** matriz, int num_pistas) {
 
         for (int pos = 0; pos < tamanho_origem; ++pos) {
             // Calcular multa original da pista de origem
-            int multa_origem_antes = calcular_multa_pista(sol.pistas[origem], matriz);
+            int multa_origem_antes = calcula_multa_pista(sol.pistas[origem], matriz);
             
             // Simular remoção do voo
             std::vector<voo> nova_origem = sol.pistas[origem];
             voo_movido = nova_origem[pos];
             nova_origem.erase(nova_origem.begin() + pos);
-            int multa_origem_depois = calcular_multa_pista(nova_origem, matriz);
+            int multa_origem_depois = calcula_multa_pista(nova_origem, matriz);
 
             // Testar todas as pistas de destino
             for (int destino = 0; destino < num_pistas; ++destino) {
                 int multa_destino_antes = (destino == origem) ? 
                     multa_origem_antes : 
-                    calcular_multa_pista(sol.pistas[destino], matriz);
+                    calcula_multa_pista(sol.pistas[destino], matriz);
 
                 // Testar todas as posições na pista de destino
                 int max_pos = (destino == origem) ? 
@@ -344,7 +423,7 @@ void re_insertion2(solucao &sol, int** matriz, int num_pistas) {
                         sol.pistas[destino];
                     
                     novo_destino.insert(novo_destino.begin() + nova_pos, voo_movido);
-                    int multa_destino_depois = calcular_multa_pista(novo_destino, matriz);
+                    int multa_destino_depois = calcula_multa_pista(novo_destino, matriz);
 
                     // Calcular delta total
                     int delta = (destino == origem)
@@ -388,7 +467,7 @@ solucao vnd(solucao otimo, int**matrix, int num_pistas){
     int k = 1;
     int menor_multa = otimo.multa;
 
-    while(k <= 4){
+    while(k <= 5){
         switch(k){
             case 1:
                 re_insertion(otimo, matrix, num_pistas);
@@ -400,6 +479,9 @@ solucao vnd(solucao otimo, int**matrix, int num_pistas){
                 two_opt(otimo, matrix, num_pistas);
                 break;
             case 4:
+                swap_pistas(otimo, matrix, num_pistas);
+                break;
+            case 5:
                 re_insertion2(otimo, matrix, num_pistas);
                 break;
         }

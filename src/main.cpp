@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <iomanip>
+#include <chrono>
 #include "include/algoritmos.h"
 #include "include/structures.h"
 
@@ -125,20 +126,36 @@ void print_dados(Dados &dados){
     }
 }
 
+void print_solucao(solucao &sol, int** matrix, int num_pistas){
+    int multa = 0;
+    for(int i = 0; i < num_pistas; i++){
+        // std::cout << "P" << i+1 << '\n';
+        int size = sol.pistas[i].size();
+        for(int v = 0, t = 0; v < size; v++){
+            if(v > 0) t += matrix[sol.pistas[i][v-1].id - 1][sol.pistas[i][v].id - 1];
+            if(t < sol.pistas[i][v].t_decolagem){ t += sol.pistas[i][v].t_decolagem - t; }
+            else if(t > sol.pistas[i][v].t_decolagem){ multa += sol.pistas[i][v].multa * (t - sol.pistas[i][v].t_decolagem); }
+            t += sol.pistas[i][v].duracao;
+        }
+    }
+
+    std::cout << multa << std::endl;
+}
+
 int main(){
     
-    std::string inst[] = {"n3m10E"};
-    // std::string inst[] = {"n500m10E", "n700m12E", "n1000m15E"};
+    // std::string inst[] = {"n1000m15E"};
+    std::string inst[] = {"n500m10E", "n700m12E", "n1000m15E"};
     // std::string inst[] = {"n3m10A", "n3m10B", "n3m10C", "n3m10D", "n3m10E", "n3m20A", "n3m20B", "n3m20C", "n3m20D", "n3m20E", "n3m40A", "n3m40B", "n3m40C", "n3m40D", "n3m40E", "n5m50A", "n5m50B", "n5m50C", "n5m50D", "n5m50E"};
     std::vector<int> valores_otimos;
     std::vector<int> valores_heuristicos;
+    std::vector<std::chrono::microseconds> tempo;
 
     for(std::string s : inst){
         Dados dados;
 
         try{
-            ler_arquivo("input/instancias/" + s + ".txt", dados);
-            //ler_arquivo("input/copa_apa/" + s + ".txt", dados);
+            ler_arquivo("input/copa_apa/" + s + ".txt", dados);
         } catch (int e){
             return e;
         }
@@ -162,45 +179,34 @@ int main(){
         
         algoritmo_guloso(sol, voos_1, dados.matrix, dados.num_voos, dados.num_pistas);
 
-        escrever_output(sol, dados.num_pistas, "guloso");
+        auto inicio = std::chrono::high_resolution_clock::now();
+        solucao sol_2 = vnd(sol, dados.matrix, dados.num_pistas);
+        auto fim = std::chrono::high_resolution_clock::now();
 
-        solucao sol_2 = sol;
+        auto duracao = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio);
 
-        swap(sol_2, dados.matrix, dados.num_pistas);
+        escrever_output(sol_2, dados.num_pistas, s);
 
-        // solucao sol_2 = vnd(sol, dados.matrix, dados.num_pistas);
-
-        escrever_output(sol_2, dados.num_pistas, "swap");
-
-        for(int i = 0; i < dados.num_pistas; i++){
-            for(int v = 0, t = 0; v < sol_2.pistas[i].size(); v++){
-                if(v > 0) t += dados.matrix[sol_2.pistas[i][v-1].id - 1][sol_2.pistas[i][v].id - 1];
-                if(t < sol_2.pistas[i][v].t_decolagem){ t += sol_2.pistas[i][v].t_decolagem - t; }
-                else if(t > sol_2.pistas[i][v].t_decolagem){ std::cout << sol_2.pistas[i][v].multa * (t - sol_2.pistas[i][v].t_decolagem) << '\n'; }
-                t += sol_2.pistas[i][v].duracao;
-            }
-        }
+        // print_solucao(sol_2, dados.matrix, dados.num_pistas);
 
         valores_otimos.push_back(sol.multa);
         valores_heuristicos.push_back(sol_2.multa);
-
-
+        tempo.push_back(duracao);
     }
 
-    std::cout << "=====================================================" << std::endl;
+    std::cout << "=============================================================" << std::endl;
     std::cout << "                        VND" << std::endl;
-    std::cout << "INSTANCIA\tOTIMO\tVALOR SOLUCAO\tTEMPO\tGAP" << std::endl;
-    std::cout << "=====================================================" << std::endl;
+    std::cout << "INSTANCIA\tOTIMO\tVALOR SOLUCAO\tTEMPO (ms)\tGAP" << std::endl;
+    std::cout << "=============================================================" << std::endl;
 
     for(uint32_t i = 0; i < valores_otimos.size(); i++){
         float gap = ((float)(valores_otimos[i]-valores_heuristicos[i])/valores_otimos[i])*100.00f;
         std::cout << std::left << std::setw(16) << inst[i]
                   << std::left << std::setw(8) << valores_otimos[i]
                   << std::right << std::setw(13) << valores_heuristicos[i]
-                  << std::right << std::setw(8) << "00:00"
-                  << std::right << std::setprecision(3) << std::setw(7) << gap << std::endl; 
+                  << std::right << std::setw(13) << tempo[i].count()
+                  << std::right << std::setprecision(3) << std::setw(9) << gap << std::endl; 
     }
-    
 
     return 0;
 }
