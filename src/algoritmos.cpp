@@ -98,14 +98,7 @@ void two_opt(solucao &sol, int**matrix, int num_pistas){
             continue;
         }
 
-        int multa_antes = 0;
-
-        for(int v = 0, t = 0; v < size; v++){
-            if(v > 0) t += matrix[sol.pistas[i][v-1].id - 1][sol.pistas[i][v].id - 1];
-            if(t < sol.pistas[i][v].t_decolagem){ t += sol.pistas[i][v].t_decolagem - t; }
-            else if(t > sol.pistas[i][v].t_decolagem){ multa_antes += sol.pistas[i][v].multa * (t - sol.pistas[i][v].t_decolagem); }
-            t += sol.pistas[i][v].duracao;
-        }
+        int multa_antes = calcula_multa_pista(sol.pistas[i], matrix);
 
         int menor_multa = multa_antes;
         int pos_inicial = -1;
@@ -167,14 +160,7 @@ void re_insertion(solucao &sol, int** matriz, int num_pistas) {
             continue; 
         }
 
-        int menor_multa = 0;
-
-        for(int v = 0, t = 0; v < tamanho; v++){
-            if(v > 0) t += matriz[sol.pistas[i][v-1].id - 1][sol.pistas[i][v].id - 1];
-            if(t < sol.pistas[i][v].t_decolagem){ t += sol.pistas[i][v].t_decolagem - t; }
-            else if(t > sol.pistas[i][v].t_decolagem){ menor_multa += sol.pistas[i][v].multa * (t - sol.pistas[i][v].t_decolagem); }
-            t += sol.pistas[i][v].duracao;
-        }
+        int menor_multa = calcula_multa_pista(sol.pistas[i], matriz);
 
         int multa_antes = menor_multa;
         int melhor_pos_mover = -1;
