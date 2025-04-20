@@ -129,7 +129,6 @@ void print_dados(Dados &dados){
 void print_solucao(solucao &sol, int** matrix, int num_pistas){
     int multa = 0;
     for(int i = 0; i < num_pistas; i++){
-        // std::cout << "P" << i+1 << '\n';
         int size = sol.pistas[i].size();
         for(int v = 0, t = 0; v < size; v++){
             if(v > 0) t += matrix[sol.pistas[i][v-1].id - 1][sol.pistas[i][v].id - 1];
@@ -201,7 +200,7 @@ int main(){
         valores_ILS.push_back(sol_3.multa);
         tempo_ILS.push_back(duracao);
         
-        escrever_output(sol_3, dados.num_pistas, "temp/"+s);
+        escrever_output(sol_3, dados.num_pistas, "instancias/"+s);
     }
 
     std::cout << "=============================================================" << std::endl;
@@ -235,14 +234,14 @@ int main(){
                   << std::right << std::setprecision(3) << std::setw(9) << gap << std::endl; 
     }
 
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
-    float media = 0;
-    for(uint32_t i = 0; i < valores_otimos.size(); i++){
-        media += ((float)(valores_otimos[i]-valores_ILS[i])/valores_otimos[i])*100.00f;
-    }
+    // float media = 0;
+    // for(uint32_t i = 0; i < valores_otimos.size(); i++){
+    //     media += ((float)(valores_otimos[i]-valores_ILS[i])/valores_otimos[i])*100.00f;
+    // }
 
-    std::cout << media/valores_otimos.size() << std::endl;
+    // std::cout << media/valores_otimos.size() << std::endl;
 
     return 0;
 }
