@@ -1,7 +1,8 @@
 #include "include/algoritmos.h"
 
-solucao algoritmo_guloso(solucao sol, voo* voos, int** matrix, int num_voos, int num_pistas){
-
+solucao algoritmo_guloso(voo* voos, int** matrix, int num_voos, int num_pistas){
+    solucao sol(num_pistas);
+    
     // Insertion sort, organizando o vetor de voos por ordem crescente de decolagem
     for(int i = 1; i < num_voos; i++){
         for (int j = i; j > 0; j--){
@@ -24,15 +25,8 @@ solucao algoritmo_guloso(solucao sol, voo* voos, int** matrix, int num_voos, int
     int t_pistas[num_pistas]; // Representa o tempo da pista
     int multa = 0; // Valor da multa
 
-    sol.pistas = new std::vector<voo>[num_pistas]; // Criando um espaço na memória pras pistas da solução
-    sol.voos_multa = new int[num_voos]; // Criando um espaço na memória pras multas de cada voo
-
     for (int i = 0; i < num_pistas; i++){
         t_pistas[i] = 0;
-    }
-
-    for (int i = 0; i < num_voos; i++){
-        sol.voos_multa[i] = 0;
     }
 
     for(int i = 0; i < num_voos; i++){
@@ -65,11 +59,6 @@ solucao algoritmo_guloso(solucao sol, voo* voos, int** matrix, int num_voos, int
         sol.pistas[pista_inserida].push_back(voos[i]);
         t_pistas[pista_inserida] += t + voos[i].duracao;
         multa += menor_multa;
-
-
-        if(menor_multa != 0){
-            sol.voos_multa[voos[i].id-1] = menor_multa;
-        }
     }
 
     sol.multa = multa;
@@ -267,9 +256,11 @@ void swap(solucao &sol, int**matrix, int num_pistas) {
             }
         }
 
-        sol.multa -= multa_antes;
-        sol.multa += multaAtual;
-        sol.pistas[i] = melhorSequencia;
+        if(multa_antes != multaAtual){
+            sol.multa -= multa_antes;
+            sol.multa += multaAtual;
+            sol.pistas[i] = melhorSequencia;
+        }
     }
 
 }
@@ -449,7 +440,7 @@ void re_insertion2(solucao &sol, int** matriz, int num_pistas) {
     }
 }
 
-solucao vnd(solucao otimo, int**matrix, int num_pistas){
+void vnd(solucao &otimo, int**matrix, int num_pistas){
     int k = 1;
     int menor_multa = otimo.multa;
 
@@ -480,27 +471,45 @@ solucao vnd(solucao otimo, int**matrix, int num_pistas){
         }
     }
 
-    return otimo;
+    // std::cout << "VND: " << std::endl;
+
+    // std::cout << "CALCULOU " << otimo.multa; 
+    // int thierry = 0;
+    // for(int i = 0; i < num_pistas; i++){
+    //     thierry+= calcula_multa_pista(otimo.pistas[i], matrix);
+    // }
+            
+    // std::cout << " MAS DEU " << thierry << std::endl;
 }
 
-solucao ils(solucao s, int** matrix, int num_pistas){
+void ils(solucao &s, int** matrix, int num_pistas){
     int tentativa = 1;
+    solucao melhor_s = s;
+
     while(tentativa < num_pistas){
-        solucao sp = pertubacao(s, tentativa, matrix, num_pistas);
-        solucao sp_ = vnd(sp, matrix, num_pistas);
+        solucao s_ = pertubacao(s, tentativa, matrix, num_pistas);
+        vnd(s_, matrix, num_pistas);
 
-        if(sp_.multa < s.multa){
-            s = sp_;
+        if(s_.multa < melhor_s.multa){
+            melhor_s = s_;
+            s = melhor_s;
         } else{
+            s = s_;
             tentativa++;
-        }
-
-        if(s.multa < 0){
-            break;
         }
     }
 
-    return s;
+    s = melhor_s;
+
+    // std::cout << "ILS: " << std::endl;
+
+    // std::cout << "CALCULOU " << s.multa; 
+    //     int thierry = 0;
+    //     for(int i = 0; i < num_pistas; i++){
+    //         thierry+= calcula_multa_pista(s.pistas[i], matrix);
+    //     }
+            
+    //     std::cout << " MAS DEU " << thierry << std::endl;
 }
 
 solucao pertubacao(solucao sol, int shift, int**matrix, int num_pistas){

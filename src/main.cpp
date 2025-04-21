@@ -78,7 +78,7 @@ void ler_arquivo(std::string arq, Dados &dados){
     file.close();
 }
 
-void escrever_output(solucao sol, int num_pistas, std::string name){
+void escrever_output(solucao &sol, int num_pistas, std::string name){
     std::ofstream file("output/"+ name + ".txt");
 
     if(!file.is_open()){
@@ -143,8 +143,7 @@ void print_solucao(solucao &sol, int** matrix, int num_pistas){
 
 int main(){
     
-    std::string inst[] = {"n3m10A", "n3m10B", "n3m10C", "n3m10D", "n3m10E", "n3m20A", "n3m20B", "n3m20C", "n3m20D", "n3m20E", "n3m40A", "n3m40B", "n3m40C", "n3m40D", "n3m40E", "n5m50A", "n5m50B", "n5m50C", "n5m50D", "n5m50E"};
-    std::vector<int> valores_otimos;
+    std::string inst[] = {"n3m10A", "n3m10B", "n3m10C", "n3m10D", "n3m10E", "n3m20A", "n3m20B", "n3m20C", "n3m20D", "n3m20E", "n3m40A", "n3m40B", "n3m40C", "n3m40D", "n3m40E", "n5m50A", "n5m50B", "n5m50C", "n5m50D", "n5m50E"};    std::vector<int> valores_otimos;
     std::vector<int> valores_VND;
     std::vector<int> valores_ILS;
     std::vector<std::chrono::microseconds> tempo_VND;
@@ -174,31 +173,28 @@ int main(){
             voos_1[i].id = voos[i].id;
         }
 
-        solucao sol;
-        
-        sol = algoritmo_guloso(sol, voos_1, dados.matrix, dados.num_voos, dados.num_pistas);
+        solucao sol = algoritmo_guloso(voos_1, dados.matrix, dados.num_voos, dados.num_pistas);
 
         valores_otimos.push_back(sol.multa);
 
         auto inicio = std::chrono::high_resolution_clock::now();
-        solucao sol_2 = vnd(sol, dados.matrix, dados.num_pistas);
+        vnd(sol, dados.matrix, dados.num_pistas);
         auto fim = std::chrono::high_resolution_clock::now();
-
+        
         auto duracao = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio);
-
-        valores_VND.push_back(sol_2.multa);
+        valores_VND.push_back(sol.multa);
         tempo_VND.push_back(duracao);
 
         inicio = std::chrono::high_resolution_clock::now();
-        solucao sol_3 = ils(sol_2, dados.matrix, dados.num_pistas);
+        ils(sol, dados.matrix, dados.num_pistas);
         fim = std::chrono::high_resolution_clock::now();
 
         duracao = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio);
 
-        valores_ILS.push_back(sol_3.multa);
+        valores_ILS.push_back(sol.multa);
         tempo_ILS.push_back(duracao);
         
-        escrever_output(sol_3, dados.num_pistas, s);
+        escrever_output(sol, dados.num_pistas, s);
     }
 
     std::cout << "=============================================================" << std::endl;
@@ -232,14 +228,14 @@ int main(){
                   << std::right << std::setprecision(3) << std::setw(9) << gap << std::endl; 
     }
 
-    // std::cout << std::endl;
+    std::cout << std::endl;
 
-    // float media = 0;
-    // for(uint32_t i = 0; i < valores_otimos.size(); i++){
-    //     media += ((float)(valores_otimos[i]-valores_ILS[i])/valores_otimos[i])*100.00f;
-    // }
+    float media = 0;
+    for(uint32_t i = 0; i < valores_otimos.size(); i++){
+        media += ((float)(valores_otimos[i]-valores_ILS[i])/valores_otimos[i])*100.00f;
+    }
 
-    // std::cout << media/valores_otimos.size() << std::endl;
+    std::cout << media/valores_otimos.size() << std::endl;
 
     return 0;
 }
