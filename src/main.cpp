@@ -144,8 +144,8 @@ void print_solucao(solucao &sol, int** matrix, int num_pistas){
 int main(){
     
     // std::string inst[] = {"n500m10E", "n700m12E", "n1000m15E"};   
-    std::string inst[] = {"n3m10A", "n3m10B", "n3m10C", "n3m10D", "n3m10E", "n3m20A", "n3m20B", "n3m20C", "n3m20D", "n3m20E", "n3m40A", "n3m40B", "n3m40C", "n3m40D", "n3m40E", "n5m50A", "n5m50B", "n5m50C", "n5m50D", "n5m50E"}; 
-    // std::string inst[] = {"n3m10A"}; 
+    // std::string inst[] = {"n3m10A", "n3m10B", "n3m10C", "n3m10D", "n3m10E", "n3m20A", "n3m20B", "n3m20C", "n3m20D", "n3m20E", "n3m40A", "n3m40B", "n3m40C", "n3m40D", "n3m40E", "n5m50A", "n5m50B", "n5m50C", "n5m50D", "n5m50E"}; 
+    std::string inst[] = {"n500m10E"}; 
     std::vector<int> valores_otimos;
     std::vector<int> valores_VND;
     std::vector<int> valores_ILS;
@@ -156,8 +156,8 @@ int main(){
         Dados dados;
 
         try{
-            // ler_arquivo("input/copa/" + s + ".txt", dados);
-            ler_arquivo("input/" + s + ".txt", dados);
+            ler_arquivo("input/copa/" + s + ".txt", dados);
+            // ler_arquivo("input/" + s + ".txt", dados);
         } catch (int e){
             return e;
         }
@@ -189,6 +189,7 @@ int main(){
         valores_VND.push_back(sol.multa);
         tempo_VND.push_back(duracao);
 
+        std::cout << "ILS: " << std::endl;
         inicio = std::chrono::high_resolution_clock::now();
         ils(sol, dados.matrix, dados.num_pistas);
         fim = std::chrono::high_resolution_clock::now();
@@ -198,8 +199,8 @@ int main(){
         valores_ILS.push_back(sol.multa);
         tempo_ILS.push_back(duracao);
         
-        // escrever_output(sol, dados.num_pistas, "copa/"+s);
-        escrever_output(sol, dados.num_pistas, s);
+        escrever_output(sol, dados.num_pistas, "copa/"+s);
+        // escrever_output(sol, dados.num_pistas, s);
 
     }
 

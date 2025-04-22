@@ -394,7 +394,7 @@ void vnd(solucao &otimo, int**matrix, int num_pistas){
     int k = 1;
     int menor_multa = otimo.multa;
 
-    while(k <= 5){
+    while(k <= 4){
         switch(k){
             case 1:
                 re_insertion_pistas(otimo, matrix, num_pistas);
@@ -412,6 +412,7 @@ void vnd(solucao &otimo, int**matrix, int num_pistas){
 
         if(otimo.multa < menor_multa){
             menor_multa = otimo.multa;
+            std::cout << menor_multa << std::endl;
             k = 1;
         }else{
             k++;
@@ -424,14 +425,14 @@ void ils(solucao &s, int** matrix, int num_pistas){
     solucao melhor_s = s;
 
     while(tentativa < num_pistas){
-        solucao s_ = pertubacao(s, tentativa, matrix, num_pistas);
+        solucao s_ = pertubacao(s, matrix, num_pistas);
         vnd(s_, matrix, num_pistas);
 
         if(s_.multa < melhor_s.multa){
+            std::cout << s_.multa << std::endl;
             melhor_s = s_;
             s = melhor_s;
         } else{
-            s = s_;
             tentativa++;
         }
     }
@@ -439,27 +440,46 @@ void ils(solucao &s, int** matrix, int num_pistas){
     s = melhor_s;
 }
 
-solucao pertubacao(solucao sol, int shift, int**matrix, int num_pistas){
-    if(num_pistas == 1){
-        return sol;
-    }
-
-    std::vector<voo> voos_deslocados[num_pistas];
-
+solucao pertubacao(solucao sol, int**matrix, int num_pistas){
     for(int i = 0; i < num_pistas; i++){
-        for(int j = 0; j < 3; j++){
-            if(sol.pistas[i].size() > 0){
-                voos_deslocados[i].push_back(sol.pistas[i].front());
-                sol.pistas[i].erase(sol.pistas[i].begin());
+        std::vector<std::vector<voo>> aux;
+        std::vector<voo> pair;
+
+        int k = 0;
+        for(voo v : sol.pistas[i]){
+            if(k == 2){
+                aux.push_back(pair);
+                pair.clear();
+                k = 0;
             }
+
+            if(k < 2){
+                pair.push_back(v);
+            }
+
+            k++;
         }
-    }
 
-    for(int i = 0; i < num_pistas; i++){
-        int size = voos_deslocados[(i+shift+1) % num_pistas].size();
+        if(!pair.empty()){
+            aux.push_back(pair);
+            pair.clear();
+        }
 
-        for(int j = size - 1; j >= 0; j--){
-            sol.pistas[i].insert(sol.pistas[i].begin(), voos_deslocados[(i+shift+1) % num_pistas][j]);
+        sol.pistas[i].clear();
+
+        int pair_count = aux.size();
+
+        while(!aux.empty()){
+            std::srand(std::time(0));
+            int index = std::rand() % pair_count;
+ 
+            for(voo v : aux[index]){
+                sol.pistas[i].push_back(v);
+            }
+
+            aux.erase(aux.begin() + index);
+
+            pair_count--;
         }
     }
 
@@ -469,6 +489,6 @@ solucao pertubacao(solucao sol, int shift, int**matrix, int num_pistas){
     }
 
     sol.multa = multa;
-    
+
     return sol;
 }
