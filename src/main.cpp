@@ -142,8 +142,10 @@ void print_solucao(solucao &sol, int** matrix, int num_pistas){
 }
 
 int main(){
-    
-    std::string inst[] = {"n3m10A", "n3m10B", "n3m10C", "n3m10D", "n3m10E", "n3m20A", "n3m20B", "n3m20C", "n3m20D", "n3m20E", "n3m40A", "n3m40B", "n3m40C", "n3m40D", "n3m40E", "n5m50A", "n5m50B", "n5m50C", "n5m50D", "n5m50E"};    std::vector<int> valores_otimos;
+    // std::string inst[] = {"n3m10A"};
+
+    std::string inst[] = {"n3m10A", "n3m10B", "n3m10C", "n3m10D", "n3m10E", "n3m20A", "n3m20B", "n3m20C", "n3m20D", "n3m20E", "n3m40A", "n3m40B", "n3m40C", "n3m40D", "n3m40E", "n5m50A", "n5m50B", "n5m50C", "n5m50D", "n5m50E"};    
+    std::vector<int> valores_otimos;
     std::vector<int> valores_VND;
     std::vector<int> valores_ILS;
     std::vector<std::chrono::microseconds> tempo_VND;
@@ -174,6 +176,10 @@ int main(){
         }
 
         solucao sol = algoritmo_guloso(voos_1, dados.matrix, dados.num_voos, dados.num_pistas);
+
+        // solucao sol_2 = pertubacao(sol, dados.matrix, dados.num_pistas);
+
+        // escrever_output(sol_2, dados.num_pistas, "PERTUBACAO");
 
         valores_otimos.push_back(sol.multa);
 

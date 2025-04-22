@@ -4,8 +4,8 @@
 #include "structures.h"
 #include <climits>
 #include <vector>
-#include <list>
-#include <tuple>
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
 
 solucao algoritmo_guloso(voo* voos, int** matrix, int num_voos, int num_pistas);
@@ -21,6 +21,6 @@ void swap_pistas(solucao &sol, int**matrix, int num_pistas);
 void vnd(solucao &otimo, int**matrix, int num_pistas);
 
 void ils(solucao &s, int** matrix, int num_pistas);
-solucao pertubacao(solucao sol, int shift, int**matrix, int num_pistas);
+solucao pertubacao(solucao sol, int**matrix, int num_pistas);
 
 #endif
