@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstdlib>
 #include <ctime>
+#include <chrono>
 #include <iostream>
 
 solucao algoritmo_guloso(voo* voos, int** matrix, int num_voos, int num_pistas);

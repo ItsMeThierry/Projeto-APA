@@ -390,6 +390,36 @@ void re_insertion_pistas(solucao &sol, int** matrix, int num_pistas) {
     }
 }
 
+// void vnd(solucao &otimo, int**matrix, int num_pistas){
+//     int k = 1;
+//     int menor_multa = otimo.multa;
+
+//     while(k <= 4){
+//         switch(k){
+//             case 1:
+//                 re_insertion_pistas(otimo, matrix, num_pistas);
+//                 break;
+//             case 2:
+//                 swap_pistas(otimo, matrix, num_pistas);
+//                 break;
+//             case 3:
+//                 re_insertion(otimo, matrix, num_pistas);
+//                 break;
+//             case 4:
+//                 swap(otimo, matrix, num_pistas);
+//                 break;
+//         }
+
+//         if(otimo.multa < menor_multa){
+//             menor_multa = otimo.multa;
+//             std::cout << menor_multa << std::endl;
+//             k = 1;
+//         }else{
+//             k++;
+//         }
+//     }
+// }
+
 void vnd(solucao &otimo, int**matrix, int num_pistas){
     int k = 1;
     int menor_multa = otimo.multa;
@@ -397,22 +427,22 @@ void vnd(solucao &otimo, int**matrix, int num_pistas){
     while(k <= 4){
         switch(k){
             case 1:
-                re_insertion_pistas(otimo, matrix, num_pistas);
+                re_insertion(otimo, matrix, num_pistas);
                 break;
             case 2:
                 swap_pistas(otimo, matrix, num_pistas);
                 break;
             case 3:
-                re_insertion(otimo, matrix, num_pistas);
+                swap(otimo, matrix, num_pistas);
                 break;
             case 4:
-                swap(otimo, matrix, num_pistas);
+                re_insertion_pistas(otimo, matrix, num_pistas);
                 break;
         }
 
         if(otimo.multa < menor_multa){
             menor_multa = otimo.multa;
-            std::cout << menor_multa << std::endl;
+            // std::cout << menor_multa << std::endl;
             k = 1;
         }else{
             k++;
@@ -429,57 +459,95 @@ void ils(solucao &s, int** matrix, int num_pistas){
         vnd(s_, matrix, num_pistas);
 
         if(s_.multa < melhor_s.multa){
-            std::cout << s_.multa << std::endl;
+            // std::cout << s_.multa << std::endl;
             melhor_s = s_;
             s = melhor_s;
+            tentativa = 1;
         } else{
             tentativa++;
+            s = s_;
         }
     }
 
     s = melhor_s;
 }
 
-solucao pertubacao(solucao sol, int**matrix, int num_pistas){
-    for(int i = 0; i < num_pistas; i++){
-        std::vector<std::vector<voo>> aux;
-        std::vector<voo> pair;
+// solucao pertubacao(solucao sol, int**matrix, int num_pistas){
+//     std::vector<std::vector<voo>> aux;
+//     std::vector<voo> pair;
+//     std::srand(std::time(0));
+//     int fila = std::rand() % num_pistas;
 
-        int k = 0;
-        for(voo v : sol.pistas[i]){
-            if(k == 2){
-                aux.push_back(pair);
-                pair.clear();
-                k = 0;
-            }
 
-            if(k < 2){
-                pair.push_back(v);
-            }
+//     int k = 0;
+//     for(voo v : sol.pistas[fila]){
+//         if(k == 1){
+//             aux.push_back(pair);
+//             pair.clear();
+//             k = 0;
+//         }
 
-            k++;
-        }
+//         if(k < 1){
+//             pair.push_back(v);
+//         }
 
-        if(!pair.empty()){
-            aux.push_back(pair);
-            pair.clear();
-        }
+//         k++;
+//     }
 
-        sol.pistas[i].clear();
+//     if(!pair.empty()){
+//         aux.push_back(pair);
+//         pair.clear();
+//     }
 
-        int pair_count = aux.size();
+//     sol.pistas[fila].clear();
 
-        while(!aux.empty()){
-            std::srand(std::time(0));
-            int index = std::rand() % pair_count;
+//     int pair_count = aux.size();
+
+//     while(!aux.empty()){
+//         std::srand(std::time(0));
+//         int index = std::rand() % pair_count;
  
-            for(voo v : aux[index]){
-                sol.pistas[i].push_back(v);
+//         for(voo v : aux[index]){
+//             sol.pistas[fila].push_back(v);
+//         }
+
+//         aux.erase(aux.begin() + index);
+
+//         pair_count--;
+//     }
+
+
+//     int multa = 0;
+//     for(int i = 0; i < num_pistas; i++){
+//         multa += calcula_multa_pista(sol.pistas[i], matrix);
+//     }
+
+//     sol.multa = multa;
+
+//     return sol;
+// }
+
+solucao pertubacao(solucao sol, int**matrix, int num_pistas){
+    if(num_pistas == 1){
+        return sol;
+    }
+
+    std::vector<voo> voos_deslocados[num_pistas];
+
+    for(int i = 0; i < num_pistas; i++){
+        for(int j = 0; j < 2; j++){
+            if(sol.pistas[i].size() > 0){
+                voos_deslocados[i].push_back(sol.pistas[i].front());
+                sol.pistas[i].erase(sol.pistas[i].begin());
             }
+        }
+    }
 
-            aux.erase(aux.begin() + index);
+    for(int i = 0; i < num_pistas; i++){
+        int size = voos_deslocados[(i+1) % num_pistas].size();
 
-            pair_count--;
+        for(int j = size - 1; j >= 0; j--){
+            sol.pistas[i].insert(sol.pistas[i].begin(), voos_deslocados[(i+1) % num_pistas][j]);
         }
     }
 
@@ -489,6 +557,6 @@ solucao pertubacao(solucao sol, int**matrix, int num_pistas){
     }
 
     sol.multa = multa;
-
+    
     return sol;
 }
