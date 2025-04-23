@@ -298,67 +298,56 @@ void swap_pistas(solucao &sol, int**matrix, int num_pistas){
 
 }
 
-void re_insertion_pistas(solucao &sol, int** matrix, int num_pistas) {
-    int menor_multa = INT_MAX;
+void re_insertion_pistas(solucao &sol, int** matriz, int num_pistas) {
+    int melhor_delta = 0;
     int melhor_pista_origem = -1, melhor_pos_mover = -1;
     int melhor_pista_destino = -1, melhor_nova_pos = -1;
+    voo voo_movido;
 
     // Explorar todos os movimentos possíveis
-    for (int origem = 0; origem < num_pistas; origem++) {
-        int size_1 = sol.pistas[origem].size();
-        if (size_1 == 0) continue;
+    for (int origem = 0; origem < num_pistas; ++origem) {
+        int tamanho_origem = sol.pistas[origem].size();
+        if (tamanho_origem == 0) continue;
 
-        for (int pos = 0; pos < size_1; pos++) {
+        for (int pos = 0; pos < tamanho_origem; ++pos) {
+            // Calcular multa original da pista de origem
+            int multa_origem_antes = calcula_multa_pista(sol.pistas[origem], matriz);
+            
             // Simular remoção do voo
-            int multa_origem_depois = 0;
-
-            for(int v = 0, t = 0; v < size_1; v++){
-                if (v == pos) continue;
-
-                if(v - 1 == pos){ t += (v - 1 == 0) ? 0 : matrix[sol.pistas[origem][v-2].id - 1][sol.pistas[origem][v].id - 1]; }
-                else if(v > 0){ t += matrix[sol.pistas[origem][v-1].id - 1][sol.pistas[origem][v].id - 1]; }
-
-                if(t < sol.pistas[origem][v].t_decolagem){ t += sol.pistas[origem][v].t_decolagem - t; }
-                else if(t > sol.pistas[origem][v].t_decolagem){ multa_origem_depois += sol.pistas[origem][v].multa * (t - sol.pistas[origem][v].t_decolagem); }
-                t += sol.pistas[origem][v].duracao;
-            }
+            std::vector<voo> nova_origem = sol.pistas[origem];
+            voo_movido = nova_origem[pos];
+            nova_origem.erase(nova_origem.begin() + pos);
+            int multa_origem_depois = calcula_multa_pista(nova_origem, matriz);
 
             // Testar todas as pistas de destino
             for (int destino = 0; destino < num_pistas; ++destino) {
-                if(destino == origem) continue;
+                int multa_destino_antes = (destino == origem) ? 
+                    multa_origem_antes : 
+                    calcula_multa_pista(sol.pistas[destino], matriz);
 
                 // Testar todas as posições na pista de destino
-                int size_2 = sol.pistas[destino].size();
+                int max_pos = (destino == origem) ? 
+                    nova_origem.size() : 
+                    sol.pistas[destino].size();
 
-                for (int nova_pos = 0; nova_pos < size_2; nova_pos++) {
+                for (int nova_pos = 0; nova_pos <= max_pos; ++nova_pos) {
                     // Simular inserção
-                    int multa_destino_depois = 0;
-                    int t = 0;
-
-                    for(int v = 0; v < nova_pos; v++){
-                        if(v > 0) t += matrix[sol.pistas[destino][v-1].id - 1][sol.pistas[destino][v].id - 1];
-                        if(t < sol.pistas[destino][v].t_decolagem){ t += sol.pistas[destino][v].t_decolagem - t; }
-                        else if(t > sol.pistas[destino][v].t_decolagem){ multa_destino_depois += sol.pistas[destino][v].multa * (t - sol.pistas[destino][v].t_decolagem); }
-                        t += sol.pistas[destino][v].duracao;
-                    }
-    
-                    if (nova_pos > 0) t += matrix[sol.pistas[destino][nova_pos-1].id - 1][sol.pistas[origem][pos].id - 1];
-                    if(t < sol.pistas[origem][pos].t_decolagem){ t += sol.pistas[origem][pos].t_decolagem - t; }
-                    else if(t > sol.pistas[origem][pos].t_decolagem){ multa_destino_depois += sol.pistas[origem][pos].multa * (t - sol.pistas[origem][pos].t_decolagem); }
-                    t += sol.pistas[origem][pos].duracao;
-    
-                    for(int v = nova_pos; v < size_2; v++){
-                        t += (v == nova_pos) ? matrix[sol.pistas[origem][pos].id - 1][sol.pistas[destino][v].id - 1] : matrix[sol.pistas[destino][v-1].id - 1][sol.pistas[destino][v].id - 1];
-                        if(t < sol.pistas[destino][v].t_decolagem){ t += sol.pistas[destino][v].t_decolagem - t;}
-                        else if(t > sol.pistas[destino][v].t_decolagem){ multa_destino_depois += sol.pistas[destino][v].multa * (t - sol.pistas[destino][v].t_decolagem);}
-                        t += sol.pistas[destino][v].duracao;
-                    }
-
-                    // Calcular multa
-                    int multa = multa_origem_depois + multa_destino_depois;
+                    std::vector<voo> novo_destino = (destino == origem) ? 
+                        nova_origem : 
+                        sol.pistas[destino];
                     
-                    if (multa < menor_multa){
-                        menor_multa = multa;
+                    novo_destino.insert(novo_destino.begin() + nova_pos, voo_movido);
+                    int multa_destino_depois = calcula_multa_pista(novo_destino, matriz);
+
+                    // Calcular delta total
+                    int delta = (destino == origem)
+                        ? (multa_destino_depois - multa_origem_antes)
+                        : (multa_origem_depois + multa_destino_depois) - 
+                          (multa_origem_antes + multa_destino_antes);
+
+                    // Atualizar melhor movimento
+                    if (delta < melhor_delta) {
+                        melhor_delta = delta;
                         melhor_pista_origem = origem;
                         melhor_pos_mover = pos;
                         melhor_pista_destino = destino;
@@ -370,55 +359,23 @@ void re_insertion_pistas(solucao &sol, int** matrix, int num_pistas) {
     }
 
     // Aplicar o melhor movimento encontrado
-    if (melhor_pos_mover != -1 && melhor_nova_pos != -1) {
+    if (melhor_delta < 0) {
+        // Remover da origem
+        voo_movido = sol.pistas[melhor_pista_origem][melhor_pos_mover];
+        sol.pistas[melhor_pista_origem].erase(
+            sol.pistas[melhor_pista_origem].begin() + melhor_pos_mover
+        );
 
-        int multa_origem_antes = calcula_multa_pista(sol.pistas[melhor_pista_origem], matrix);
-        int multa_destino_antes = calcula_multa_pista(sol.pistas[melhor_pista_destino], matrix);
-        
-        if(menor_multa < multa_destino_antes + multa_origem_antes){
-            // Remover da origem
-            voo voo_movido = sol.pistas[melhor_pista_origem][melhor_pos_mover];
-            sol.pistas[melhor_pista_origem].erase(sol.pistas[melhor_pista_origem].begin() + melhor_pos_mover);
+        // Inserir no destino
+        sol.pistas[melhor_pista_destino].insert(
+            sol.pistas[melhor_pista_destino].begin() + melhor_nova_pos,
+            voo_movido
+        );
 
-            // Inserir no destino
-            sol.pistas[melhor_pista_destino].insert(sol.pistas[melhor_pista_destino].begin() + melhor_nova_pos, voo_movido);
-
-            // Atualizar multa total
-            sol.multa -= multa_origem_antes + multa_destino_antes;
-            sol.multa += menor_multa;
-        }
+        // Atualizar multa total
+        sol.multa += melhor_delta;
     }
 }
-
-// void vnd(solucao &otimo, int**matrix, int num_pistas){
-//     int k = 1;
-//     int menor_multa = otimo.multa;
-
-//     while(k <= 4){
-//         switch(k){
-//             case 1:
-//                 re_insertion_pistas(otimo, matrix, num_pistas);
-//                 break;
-//             case 2:
-//                 swap_pistas(otimo, matrix, num_pistas);
-//                 break;
-//             case 3:
-//                 re_insertion(otimo, matrix, num_pistas);
-//                 break;
-//             case 4:
-//                 swap(otimo, matrix, num_pistas);
-//                 break;
-//         }
-
-//         if(otimo.multa < menor_multa){
-//             menor_multa = otimo.multa;
-//             std::cout << menor_multa << std::endl;
-//             k = 1;
-//         }else{
-//             k++;
-//         }
-//     }
-// }
 
 void vnd(solucao &otimo, int**matrix, int num_pistas){
     int k = 1;
@@ -427,13 +384,13 @@ void vnd(solucao &otimo, int**matrix, int num_pistas){
     while(k <= 4){
         switch(k){
             case 1:
-                re_insertion(otimo, matrix, num_pistas);
+                swap(otimo, matrix, num_pistas);
                 break;
             case 2:
-                swap_pistas(otimo, matrix, num_pistas);
+                re_insertion(otimo, matrix, num_pistas);
                 break;
             case 3:
-                swap(otimo, matrix, num_pistas);
+                swap_pistas(otimo, matrix, num_pistas);
                 break;
             case 4:
                 re_insertion_pistas(otimo, matrix, num_pistas);
@@ -472,61 +429,6 @@ void ils(solucao &s, int** matrix, int num_pistas){
     s = melhor_s;
 }
 
-// solucao pertubacao(solucao sol, int**matrix, int num_pistas){
-//     std::vector<std::vector<voo>> aux;
-//     std::vector<voo> pair;
-//     std::srand(std::time(0));
-//     int fila = std::rand() % num_pistas;
-
-
-//     int k = 0;
-//     for(voo v : sol.pistas[fila]){
-//         if(k == 1){
-//             aux.push_back(pair);
-//             pair.clear();
-//             k = 0;
-//         }
-
-//         if(k < 1){
-//             pair.push_back(v);
-//         }
-
-//         k++;
-//     }
-
-//     if(!pair.empty()){
-//         aux.push_back(pair);
-//         pair.clear();
-//     }
-
-//     sol.pistas[fila].clear();
-
-//     int pair_count = aux.size();
-
-//     while(!aux.empty()){
-//         std::srand(std::time(0));
-//         int index = std::rand() % pair_count;
- 
-//         for(voo v : aux[index]){
-//             sol.pistas[fila].push_back(v);
-//         }
-
-//         aux.erase(aux.begin() + index);
-
-//         pair_count--;
-//     }
-
-
-//     int multa = 0;
-//     for(int i = 0; i < num_pistas; i++){
-//         multa += calcula_multa_pista(sol.pistas[i], matrix);
-//     }
-
-//     sol.multa = multa;
-
-//     return sol;
-// }
-
 solucao pertubacao(solucao sol, int**matrix, int num_pistas){
     if(num_pistas == 1){
         return sol;
@@ -535,7 +437,7 @@ solucao pertubacao(solucao sol, int**matrix, int num_pistas){
     std::vector<voo> voos_deslocados[num_pistas];
 
     for(int i = 0; i < num_pistas; i++){
-        for(int j = 0; j < 2; j++){
+        for(int j = 0; j < 3; j++){
             if(sol.pistas[i].size() > 0){
                 voos_deslocados[i].push_back(sol.pistas[i].front());
                 sol.pistas[i].erase(sol.pistas[i].begin());
