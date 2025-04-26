@@ -148,9 +148,9 @@ int main(){
     std::string inst[] = {"n500m10E"}; 
     std::vector<int> valores_otimos;
     std::vector<int> valores_VND;
-    std::vector<int> valores_ILS;
+    // std::vector<int> valores_ILS;
     std::vector<std::chrono::microseconds> tempo_VND;
-    std::vector<std::chrono::microseconds> tempo_ILS;
+    // std::vector<std::chrono::microseconds> tempo_ILS;
 
     for(std::string s : inst){
         Dados dados;
@@ -179,24 +179,26 @@ int main(){
 
         solucao sol = algoritmo_guloso(voos_1, dados.matrix, dados.num_voos, dados.num_pistas);
 
+        std::cout << "Guloso: ";
+        print_solucao(sol, dados.matrix, dados.num_pistas);
+
         valores_otimos.push_back(sol.multa);
         auto inicio = std::chrono::high_resolution_clock::now();
-        vnd(sol, dados.matrix, dados.num_pistas);
-
+        rvns(sol, dados.matrix, dados.num_pistas);
         auto fim = std::chrono::high_resolution_clock::now();
         
         auto duracao = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio);
         valores_VND.push_back(sol.multa);
         tempo_VND.push_back(duracao);
 
-        inicio = std::chrono::high_resolution_clock::now();
-        ils(sol, dados.matrix, dados.num_pistas);
-        fim = std::chrono::high_resolution_clock::now();
+        // inicio = std::chrono::high_resolution_clock::now();
+        // ils(sol, dados.matrix, dados.num_pistas);
+        // fim = std::chrono::high_resolution_clock::now();
 
-        duracao = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio);
+        // duracao = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio);
 
-        valores_ILS.push_back(sol.multa);
-        tempo_ILS.push_back(duracao);
+        // valores_ILS.push_back(sol.multa);
+        // tempo_ILS.push_back(duracao);
         
 
         escrever_output(sol, dados.num_pistas, "copa/"+s);
@@ -205,7 +207,7 @@ int main(){
     }
 
     std::cout << "=============================================================" << std::endl;
-    std::cout << "                             VND" << std::endl;
+    std::cout << "                             RVNS" << std::endl;
     std::cout << "INSTANCIA\tOTIMO\tVALOR SOLUCAO\tTEMPO (μs)\tGAP" << std::endl;
     std::cout << "=============================================================" << std::endl;
 
@@ -221,28 +223,28 @@ int main(){
     std::cout << std::endl;
     std::cout << std::endl;
 
-    std::cout << "=============================================================" << std::endl;
-    std::cout << "                             ILS" << std::endl;
-    std::cout << "INSTANCIA\tOTIMO\tVALOR SOLUCAO\tTEMPO (μs)\tGAP" << std::endl;
-    std::cout << "=============================================================" << std::endl;
+    // std::cout << "=============================================================" << std::endl;
+    // std::cout << "                             ILS" << std::endl;
+    // std::cout << "INSTANCIA\tOTIMO\tVALOR SOLUCAO\tTEMPO (μs)\tGAP" << std::endl;
+    // std::cout << "=============================================================" << std::endl;
 
-    for(uint32_t i = 0; i < valores_otimos.size(); i++){
-        float gap = ((float)(valores_otimos[i]-valores_ILS[i])/valores_otimos[i])*100.00f;
-        std::cout << std::left << std::setw(16) << inst[i]
-                  << std::left << std::setw(8) << valores_otimos[i]
-                  << std::right << std::setw(13) << valores_ILS[i]
-                  << std::right << std::setw(13) << tempo_ILS[i].count()
-                  << std::right << std::setprecision(3) << std::setw(9) << gap << std::endl; 
-    }
+    // for(uint32_t i = 0; i < valores_otimos.size(); i++){
+    //     float gap = ((float)(valores_otimos[i]-valores_ILS[i])/valores_otimos[i])*100.00f;
+    //     std::cout << std::left << std::setw(16) << inst[i]
+    //               << std::left << std::setw(8) << valores_otimos[i]
+    //               << std::right << std::setw(13) << valores_ILS[i]
+    //               << std::right << std::setw(13) << tempo_ILS[i].count()
+    //               << std::right << std::setprecision(3) << std::setw(9) << gap << std::endl; 
+    // }
 
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
-    float media = 0;
-    for(uint32_t i = 0; i < valores_otimos.size(); i++){
-        media += ((float)(valores_otimos[i]-valores_ILS[i])/valores_otimos[i])*100.00f;
-    }
+    // float media = 0;
+    // for(uint32_t i = 0; i < valores_otimos.size(); i++){
+    //     media += ((float)(valores_otimos[i]-valores_ILS[i])/valores_otimos[i])*100.00f;
+    // }
 
-    std::cout << media/valores_otimos.size() << std::endl;
+    // std::cout << media/valores_otimos.size() << std::endl;
 
     return 0;
 }
