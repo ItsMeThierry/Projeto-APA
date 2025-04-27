@@ -267,39 +267,41 @@ void re_insertion_2_pistas(solucao &sol, int** matrix, int num_pistas) {
     sol.multa = multa;
 }
 
-void sa(solucao &otimo, int** matrix, int num_pistas) {
+void sa(solucao &otimo, int** matrix, int num_pistas, int num_voos) {
     long double temperatura_inicial = calcula_temperatura_inicial(otimo, matrix, num_pistas);
+    long double temperatura_final = temperatura_inicial / 500;
     long double temperatura = temperatura_inicial;
-    float coeficiente = 0.99;
-    int passo = 0;
+    long double coeficiente = 0.995;
+    int max_iter = num_voos * 10;
     solucao s_atual = otimo;
 
-    // std::cout << "T0: " << temperatura_inicial << '\n';
+    std::cout << "T0: " << temperatura_inicial << '\n';
 
-    while(temperatura > (temperatura_inicial / 500) && passo < 1000){
-        for(int l = 0; l < 5000; l++){
+    while(temperatura > temperatura_final){
+        for(int l = 0; l < max_iter; l++){
             solucao s_ = generate_neighbor(s_atual, matrix, num_pistas);
             int variacao = s_.multa - s_atual.multa;
-            // // std::cout << variacao << '\n';
 
             if(variacao <= 0){
                 s_atual = s_;
 
                 if(s_atual.multa < otimo.multa){
                     otimo = s_atual;
-                    // std::cout << otimo.multa << '\n';
+                    std::cout << s_atual.multa << '\n';
+                    l = 0;
                 }
             } else{
                 std::uniform_real_distribution<> dist(0, 1);
                 double r = dist(gen);
-                if(r < exp(-variacao/temperatura)){
+                long double taxa = (((long double) variacao) /temperatura) * (-1);
+                if(r < exp(taxa)){
                     s_atual = s_;
                 }
             }
         }
 
         temperatura *= coeficiente;
-        passo++;
+        std::cout << "T: " << temperatura << '\n';
     }
 }
 
@@ -313,45 +315,35 @@ long double calcula_temperatura_inicial(solucao &sol, int**matrix, int num_pista
     }
 
     double media = (double) sum_variacao / 1000;
-    // std::cout << media << '\n';
 
-    return exp(media / 0.25);
+    return exp(media / 5);
 }
 
 solucao generate_neighbor(solucao sol, int**matrix, int num_pistas){
     std::uniform_int_distribution<int> dist(1, 6);
 
     int k = dist(gen);
-    // // std::cout << "K " << k << '\n';
 
     switch(k) {
         case 1:
-            // std::cout << "SWAP\n";
             swap(sol, matrix, num_pistas);
             break;
         case 2:
-            // std::cout << "RE_INSERTION\n";
             re_insertion(sol, matrix, num_pistas);
             break;
         case 3:
-            // std::cout << "SWAP_PISTAS\n";
             swap_pistas(sol, matrix, num_pistas);
             break;
         case 4:
-            // std::cout << "RE_INSERTION_PISTAS\n";
             re_insertion_pistas(sol, matrix, num_pistas);
             break;
         case 5:
-            // std::cout << "RE_INSERTION_2\n";
             re_insertion_2(sol, matrix, num_pistas);
             break;
         case 6:
-            // std::cout << "RE_INSERTION_2_PISTAS\n";
             re_insertion_2_pistas(sol, matrix, num_pistas);
             break;
     }
-
-    // // std::cout << "Random multa: " << sol.multa << '\n';
 
     return sol;
 }

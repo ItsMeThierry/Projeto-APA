@@ -21,7 +21,7 @@ void re_insertion_2(solucao &sol, int**matrix, int num_pistas);
 void re_insertion_2_pistas(solucao &sol, int**matrix, int num_pistas);
 
 
-void sa(solucao &otimo, int**matrix, int num_pistas);
+void sa(solucao &otimo, int**matrix, int num_pistas, int num_voos);
 long double calcula_temperatura_inicial(solucao &sol, int**matrix, int num_pistas);
 solucao generate_neighbor(solucao sol, int**matrix, int num_pistas);
 
