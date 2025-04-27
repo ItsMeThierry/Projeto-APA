@@ -5,6 +5,7 @@
 #include <climits>
 #include <vector>
 #include <cstdlib>
+#include <math.h>  
 #include <ctime>
 #include <chrono>
 #include <iostream>
@@ -21,10 +22,9 @@ void re_insertion_2(solucao &sol, int**matrix, int num_pistas);
 void re_insertion_2_pistas(solucao &sol, int**matrix, int num_pistas);
 
 
-void rvns(solucao &otimo, int**matrix, int num_pistas);
-solucao shake(solucao sol, int k, int**matrix, int num_pistas);
+void sa(solucao &otimo, int**matrix, int num_pistas);
+long double calcula_temperatura_inicial(solucao &sol, int**matrix, int num_pistas);
+solucao generate_neighbor(solucao sol, int**matrix, int num_pistas);
 
-void ils(solucao &s, int** matrix, int num_pistas);
-solucao pertubacao(solucao sol, int**matrix, int num_pistas);
 
 #endif
