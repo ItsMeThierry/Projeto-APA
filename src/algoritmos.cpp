@@ -1,5 +1,8 @@
 #include "include/algoritmos.h"
 
+static std::random_device rd;
+static std::mt19937 gen(rd());
+
 solucao algoritmo_guloso(voo* voos, int** matrix, int num_voos, int num_pistas){
     solucao sol(num_pistas);
     
@@ -78,148 +81,189 @@ int calcula_multa_pista(std::vector<voo> &pista, int** matrix){
     return multa;
 }
 
-void swap(solucao &sol, int**matrix, int num_pistas) {
-    std::srand(std::time(0));
-    int pista = std::rand() % num_pistas;
-    int pos_1 = std::rand() % ((int) sol.pistas[pista].size());
-    int pos_2 = pos_1;
+void swap(solucao &sol, int** matrix, int num_pistas) {
+    std::uniform_int_distribution<int> dist_pista(0, num_pistas - 1);
+    int pista = dist_pista(gen);
+    
+    int tentativas = 0;
+    while(tentativas < 100 && sol.pistas[pista].size() < 2) {
+        pista = dist_pista(gen);
+        tentativas++;
+    }
+    if (sol.pistas[pista].size() < 2) return;
 
-    while(pos_2 == pos_1){
-        pos_2 = std::rand() % ((int) sol.pistas[pista].size());
+    std::uniform_int_distribution<int> dist_pos(0, ((int) sol.pistas[pista].size()) - 1);
+    int pos_1 = dist_pos(gen);
+    
+    int pos_2 = pos_1;
+    while(pos_2 == pos_1 && sol.pistas[pista].size() > 1) {
+        pos_2 = dist_pos(gen);
     }
 
     std::swap(sol.pistas[pista][pos_1], sol.pistas[pista][pos_2]);
 
     int multa = 0;
-    for(int i = 0; i < num_pistas; i++){
+    for(int i = 0; i < num_pistas; i++) {
         multa += calcula_multa_pista(sol.pistas[i], matrix);
     }
-
     sol.multa = multa;
 }
 
-void swap_pistas(solucao &sol, int**matrix, int num_pistas){
-    std::srand(std::time(0));
-    int pista_1 = std::rand() % num_pistas;
-    int pista_2 = pista_1;
+void swap_pistas(solucao &sol, int** matrix, int num_pistas) {
+    std::uniform_int_distribution<int> dist_pista(0, num_pistas - 1);
+    
+    int tentativas = 0;
+    int pista_1, pista_2;
+    do {
+        pista_1 = dist_pista(gen);
+        pista_2 = dist_pista(gen);
+        tentativas++;
+    } while(tentativas < 100 && (pista_1 == pista_2 || sol.pistas[pista_1].empty() || sol.pistas[pista_2].empty()));
+    
+    if (pista_1 == pista_2 || sol.pistas[pista_1].empty() || sol.pistas[pista_2].empty()) return;
 
-    while(pista_2 == pista_1){
-        pista_2 = std::rand() % num_pistas;
-    }
-
-    int pos_1 = std::rand() % ((int) sol.pistas[pista_1].size());
-    int pos_2 = std::rand() % ((int) sol.pistas[pista_2].size());
+    std::uniform_int_distribution<int> dist_pos1(0, ((int) sol.pistas[pista_1].size()) - 1);
+    std::uniform_int_distribution<int> dist_pos2(0, ((int) sol.pistas[pista_2].size()) - 1);
+    
+    int pos_1 = dist_pos1(gen);
+    int pos_2 = dist_pos2(gen);
 
     std::swap(sol.pistas[pista_1][pos_1], sol.pistas[pista_2][pos_2]);
 
     int multa = 0;
-    for(int i = 0; i < num_pistas; i++){
+    for(int i = 0; i < num_pistas; i++) {
         multa += calcula_multa_pista(sol.pistas[i], matrix);
     }
-
     sol.multa = multa;
 }
 
-void re_insertion(solucao &sol, int** matrix, int num_pistas){
-    std::srand(std::time(0));
-    int pista = std::rand() % num_pistas;
-    int pos_1 = std::rand() % ((int) sol.pistas[pista].size());
+void re_insertion(solucao &sol, int** matrix, int num_pistas) {
+    std::uniform_int_distribution<int> dist_pista(0, num_pistas - 1);
+    
+    int tentativas = 0;
+    int pista;
+    do {
+        pista = dist_pista(gen);
+        tentativas++;
+    } while(tentativas < 100 && sol.pistas[pista].size() < 3);
+    
+    if (sol.pistas[pista].size() < 3) return;
 
+    std::uniform_int_distribution<int> dist_pos1(0, ((int) sol.pistas[pista].size()) - 1);
+    int pos_1 = dist_pos1(gen);
+    
     voo voo_movido = sol.pistas[pista][pos_1];
     sol.pistas[pista].erase(sol.pistas[pista].begin() + pos_1);
 
-    int pos_2 = pos_1;
-
-    while(pos_2 == pos_1){
-        pos_2 = std::rand() % sol.pistas[pista].size();
-    }
+    int pos_2;
+    do {
+        pos_2 = dist_pos1(gen);
+    } while(pos_2 == pos_1 && sol.pistas[pista].size() > 0);
 
     sol.pistas[pista].insert(sol.pistas[pista].begin() + pos_2, voo_movido);
 
     int multa = 0;
-    for(int i = 0; i < num_pistas; i++){
+    for(int i = 0; i < num_pistas; i++) {
         multa += calcula_multa_pista(sol.pistas[i], matrix);
     }
-
     sol.multa = multa;
 }
 
 void re_insertion_pistas(solucao &sol, int** matrix, int num_pistas) {
-    std::srand(std::time(0));
-    int pista_1 = std::rand() % num_pistas;
-    int pista_2 = pista_1;
+    std::uniform_int_distribution<int> dist_pista(0, num_pistas - 1);
+    
+    int tentativas = 0;
+    int pista_1, pista_2;
+    do {
+        pista_1 = dist_pista(gen);
+        pista_2 = dist_pista(gen);
+        tentativas++;
+    } while(tentativas < 100 && (pista_1 == pista_2 || sol.pistas[pista_1].empty()));
+    
+    if (pista_1 == pista_2 || sol.pistas[pista_1].empty()) return;
 
-    while(pista_2 == pista_1){
-        pista_2 = std::rand() % num_pistas;
-    }
-
-    int pos_1 = std::rand() % ((int) sol.pistas[pista_1].size());
-    int pos_2 = std::rand() % ((int) sol.pistas[pista_2].size());
-
+    std::uniform_int_distribution<int> dist_pos1(0, ((int) sol.pistas[pista_1].size()) - 1);
+    std::uniform_int_distribution<int> dist_pos2(0, sol.pistas[pista_2].size());
+    
+    int pos_1 = dist_pos1(gen);
+    int pos_2 = dist_pos2(gen);
+    
     voo voo_movido = sol.pistas[pista_1][pos_1];
     sol.pistas[pista_1].erase(sol.pistas[pista_1].begin() + pos_1);
-
     sol.pistas[pista_2].insert(sol.pistas[pista_2].begin() + pos_2, voo_movido);
 
     int multa = 0;
-    for(int i = 0; i < num_pistas; i++){
+    for(int i = 0; i < num_pistas; i++) {
         multa += calcula_multa_pista(sol.pistas[i], matrix);
     }
-
     sol.multa = multa;
 }
 
-void re_insertion_2(solucao &sol, int**matrix, int num_pistas){
-    std::srand(std::time(0));
-    int pista = std::rand() % num_pistas;
-    int pos_1 = std::rand() % ((int) sol.pistas[pista].size() - 1);
+void re_insertion_2(solucao &sol, int** matrix, int num_pistas) {
+    std::uniform_int_distribution<int> dist_pista(0, num_pistas - 1);
+    
+    int tentativas = 0;
+    int pista;
+    do {
+        pista = dist_pista(gen);
+        tentativas++;
+    } while(tentativas < 100 && sol.pistas[pista].size() < 4);
+    
+    if (sol.pistas[pista].size() < 4) return;
+
+    std::uniform_int_distribution<int> dist_pos1(0, ((int) sol.pistas[pista].size()) - 2);
+    int pos_1 = dist_pos1(gen);
 
     voo voo_movido_1 = sol.pistas[pista][pos_1];
     voo voo_movido_2 = sol.pistas[pista][pos_1+1];
-    sol.pistas[pista].erase(sol.pistas[pista].begin() + pos_1, sol.pistas[pista].begin() + pos_1 + 1);
+    sol.pistas[pista].erase(sol.pistas[pista].begin() + pos_1, sol.pistas[pista].begin() + pos_1 + 2);
 
-    int pos_2 = pos_1;
-
-    while(pos_2 == pos_1){
-        pos_2 = std::rand() % ((int) sol.pistas[pista].size());
-    }
+    std::uniform_int_distribution<int> dist_pos2(0, ((int) sol.pistas[pista].size()) - 1);
+    int pos_2;
+    do {
+        pos_2 = dist_pos2(gen);
+    } while(pos_2 == pos_1 && sol.pistas[pista].size() > 1);
 
     sol.pistas[pista].insert(sol.pistas[pista].begin() + pos_2, voo_movido_1);
     sol.pistas[pista].insert(sol.pistas[pista].begin() + pos_2 + 1, voo_movido_2);
 
     int multa = 0;
-    for(int i = 0; i < num_pistas; i++){
+    for(int i = 0; i < num_pistas; i++) {
         multa += calcula_multa_pista(sol.pistas[i], matrix);
     }
-
     sol.multa = multa;
 }
 
-void re_insertion_2_pistas(solucao &sol, int**matrix, int num_pistas){
-    std::srand(std::time(0));
-    int pista_1 = std::rand() % num_pistas;
-    int pista_2 = pista_1;
+void re_insertion_2_pistas(solucao &sol, int** matrix, int num_pistas) {
+    std::uniform_int_distribution<int> dist_pista(0, num_pistas - 1);
+    
+    int tentativas = 0;
+    int pista_1, pista_2;
+    do {
+        pista_1 = dist_pista(gen);
+        pista_2 = dist_pista(gen);
+        tentativas++;
+    } while(tentativas < 100 && (pista_1 == pista_2 || sol.pistas[pista_1].size() < 2));
+    
+    if (pista_1 == pista_2 || sol.pistas[pista_1].size() < 2) return;
 
-    while(pista_2 == pista_1){
-        pista_2 = std::rand() % num_pistas;
-    }
-
-    int pos_1 = std::rand() % ((int) sol.pistas[pista_1].size() - 1);
+    std::uniform_int_distribution<int> dist_pos1(0, ((int) sol.pistas[pista_1].size()) - 2);
+    int pos_1 = dist_pos1(gen);
 
     voo voo_movido_1 = sol.pistas[pista_1][pos_1];
     voo voo_movido_2 = sol.pistas[pista_1][pos_1+1];
-    sol.pistas[pista_1].erase(sol.pistas[pista_1].begin() + pos_1, sol.pistas[pista_1].begin() + pos_1 + 1);
+    sol.pistas[pista_1].erase(sol.pistas[pista_1].begin() + pos_1, sol.pistas[pista_1].begin() + pos_1 + 2);
 
-    int pos_2 = std::rand() % ((int) sol.pistas[pista_2].size());
+    std::uniform_int_distribution<int> dist_pos2(0, sol.pistas[pista_2].size());
+    int pos_2 = dist_pos2(gen);
 
     sol.pistas[pista_2].insert(sol.pistas[pista_2].begin() + pos_2, voo_movido_1);
     sol.pistas[pista_2].insert(sol.pistas[pista_2].begin() + pos_2 + 1, voo_movido_2);
 
     int multa = 0;
-    for(int i = 0; i < num_pistas; i++){
+    for(int i = 0; i < num_pistas; i++) {
         multa += calcula_multa_pista(sol.pistas[i], matrix);
     }
-
     sol.multa = multa;
 }
 
@@ -230,23 +274,24 @@ void sa(solucao &otimo, int** matrix, int num_pistas) {
     int passo = 0;
     solucao s_atual = otimo;
 
-    std::cout << "T0: " << temperatura_inicial << '\n';
+    // std::cout << "T0: " << temperatura_inicial << '\n';
 
     while(temperatura > (temperatura_inicial / 500) && passo < 1000){
         for(int l = 0; l < 5000; l++){
             solucao s_ = generate_neighbor(s_atual, matrix, num_pistas);
             int variacao = s_.multa - s_atual.multa;
-            // std::cout << variacao << '\n';
+            // // std::cout << variacao << '\n';
 
             if(variacao <= 0){
                 s_atual = s_;
 
                 if(s_atual.multa < otimo.multa){
                     otimo = s_atual;
-                    std::cout << otimo.multa << '\n';
+                    // std::cout << otimo.multa << '\n';
                 }
             } else{
-                double r = static_cast<double>(std::rand()) / (RAND_MAX + 1);
+                std::uniform_real_distribution<> dist(0, 1);
+                double r = dist(gen);
                 if(r < exp(-variacao/temperatura)){
                     s_atual = s_;
                 }
@@ -268,42 +313,45 @@ long double calcula_temperatura_inicial(solucao &sol, int**matrix, int num_pista
     }
 
     double media = (double) sum_variacao / 1000;
-    std::cout << media << '\n';
+    // std::cout << media << '\n';
 
     return exp(media / 0.25);
 }
 
 solucao generate_neighbor(solucao sol, int**matrix, int num_pistas){
-    int k = std::rand() % 6;
+    std::uniform_int_distribution<int> dist(1, 6);
+
+    int k = dist(gen);
+    // // std::cout << "K " << k << '\n';
 
     switch(k) {
-        case 0:
+        case 1:
             // std::cout << "SWAP\n";
             swap(sol, matrix, num_pistas);
             break;
-        case 1:
+        case 2:
             // std::cout << "RE_INSERTION\n";
             re_insertion(sol, matrix, num_pistas);
             break;
-        case 2:
+        case 3:
             // std::cout << "SWAP_PISTAS\n";
             swap_pistas(sol, matrix, num_pistas);
             break;
-        case 3:
+        case 4:
             // std::cout << "RE_INSERTION_PISTAS\n";
             re_insertion_pistas(sol, matrix, num_pistas);
             break;
-        case 4:
+        case 5:
             // std::cout << "RE_INSERTION_2\n";
             re_insertion_2(sol, matrix, num_pistas);
             break;
-        case 5:
+        case 6:
             // std::cout << "RE_INSERTION_2_PISTAS\n";
             re_insertion_2_pistas(sol, matrix, num_pistas);
             break;
     }
 
-    // std::cout << "Random multa: " << sol.multa << '\n';
+    // // std::cout << "Random multa: " << sol.multa << '\n';
 
     return sol;
 }

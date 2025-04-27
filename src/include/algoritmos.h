@@ -4,9 +4,8 @@
 #include "structures.h"
 #include <climits>
 #include <vector>
-#include <cstdlib>
 #include <math.h>  
-#include <ctime>
+#include <random>
 #include <chrono>
 #include <iostream>
 
