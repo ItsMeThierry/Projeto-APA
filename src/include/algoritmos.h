@@ -20,10 +20,20 @@ void swap_pistas(solucao &sol, int**matrix, int num_pistas);
 void re_insertion_2(solucao &sol, int**matrix, int num_pistas);
 void re_insertion_2_pistas(solucao &sol, int**matrix, int num_pistas);
 
+void rand_re_insertion(solucao &sol, int**matrix, int num_pistas);
+void rand_re_insertion_pistas(solucao &sol, int**matrix, int num_pistas);
+void rand_swap(solucao &sol, int**matrix, int num_pistas);
+void rand_swap_pistas(solucao &sol, int**matrix, int num_pistas);
+void rand_re_insertion_2(solucao &sol, int**matrix, int num_pistas);
+void rand_re_insertion_2_pistas(solucao &sol, int**matrix, int num_pistas);
 
+void vnd(solucao &otimo, int**matrix, int num_pistas);
 void sa(solucao &otimo, int**matrix, int num_pistas, int num_voos);
+
 long double calcula_temperatura_inicial(solucao &sol, int**matrix, int num_pistas);
 solucao generate_neighbor(solucao sol, int**matrix, int num_pistas);
 
+void ils(solucao &s, int** matrix, int num_pistas);
+solucao pertubacao(solucao sol, int**matrix, int num_pistas);
 
 #endif
