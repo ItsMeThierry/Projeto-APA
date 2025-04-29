@@ -19,6 +19,8 @@ void swap(solucao &sol, int**matrix, int num_pistas);
 void swap_pistas(solucao &sol, int**matrix, int num_pistas);
 void re_insertion_2(solucao &sol, int**matrix, int num_pistas);
 void re_insertion_2_pistas(solucao &sol, int**matrix, int num_pistas);
+void re_insertion_3(solucao &sol, int**matrix, int num_pistas);
+void re_insertion_3_pistas(solucao &sol, int**matrix, int num_pistas);
 
 void rand_re_insertion(solucao &sol, int**matrix, int num_pistas);
 void rand_re_insertion_pistas(solucao &sol, int**matrix, int num_pistas);
@@ -26,6 +28,8 @@ void rand_swap(solucao &sol, int**matrix, int num_pistas);
 void rand_swap_pistas(solucao &sol, int**matrix, int num_pistas);
 void rand_re_insertion_2(solucao &sol, int**matrix, int num_pistas);
 void rand_re_insertion_2_pistas(solucao &sol, int**matrix, int num_pistas);
+void rand_re_insertion_3(solucao &sol, int**matrix, int num_pistas);
+void rand_re_insertion_3_pistas(solucao &sol, int**matrix, int num_pistas);
 
 void vnd(solucao &otimo, int**matrix, int num_pistas);
 void sa(solucao &otimo, int**matrix, int num_pistas, int num_voos);
