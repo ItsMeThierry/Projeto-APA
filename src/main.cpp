@@ -6,55 +6,43 @@
 #include "include/algoritmos.h"
 #include "include/structures.h"
 
-struct Dados{
-    int num_voos;
-    int num_pistas;
-
-    int* r;
-    int* c;
-    int* p;
-
-    voo* voos;
-    int** matrix;
-};
-
 void ler_arquivo(std::string arq, Dados &dados){
     std::ifstream file(arq);
 
     if(!file.is_open()){
-        std::cerr << "[ERRO] Nao foi possivel abrir o arquivo!" << std::endl;
+        std::cerr << "[ERRO] Nao foi possivel abrir o arquivo " << arq << "!" << std::endl;
         throw -1;
     }
 
     if(!(file >> dados.num_voos)){
-        std::cerr << "[ERRO] Nao foi possivel ler o numero de voos." << std::endl;
+        std::cerr << "[ERRO] Nao foi possivel ler o numero de voos no " << arq << "." << std::endl;
         throw -1;
     }
     if(!(file >> dados.num_pistas)){
-        std::cerr << "[ERRO] Nao foi possivel ler o numero de pistas." << std::endl;
+        std::cerr << "[ERRO] Nao foi possivel ler o numero de pistas no " << arq << "." << std::endl;
         throw -1;
     }
 
-    dados.r = new int[dados.num_voos];
+    dados.array_decolagem = new int[dados.num_voos];
     for(int i = 0; i < dados.num_voos; i++){
-        if(!(file >> dados.r[i])){
-            std::cerr << "[ERRO] Array r esta com formatacao errada." << std::endl;
+        if(!(file >> dados.array_decolagem[i])){
+            std::cerr << "[ERRO] Array decolagem esta com formatacao errada no " << arq << "." << std::endl;
             throw -1;
         }
     }
 
-    dados.c = new int[dados.num_voos];
+    dados.array_duracao = new int[dados.num_voos];
     for(int i = 0; i < dados.num_voos; i++){
-        if(!(file >> dados.c[i])){
-            std::cerr << "[ERRO] Array c esta com formatacao errada." << std::endl;
+        if(!(file >> dados.array_duracao[i])){
+            std::cerr << "[ERRO] Array duracao esta com formatacao errada no " << arq << "." << std::endl;
             throw -1;
         }
     }
 
-    dados.p = new int[dados.num_voos];
+    dados.array_penalidade = new int[dados.num_voos];
     for(int i = 0; i < dados.num_voos; i++){
-        if(!(file >> dados.p[i])){
-            std::cerr << "[ERRO] Array p esta com formatacao errada." << std::endl;
+        if(!(file >> dados.array_penalidade[i])){
+            std::cerr << "[ERRO] Array penalidade esta com formatacao errada no " << arq << "." << std::endl;
             throw -1;
         }
     }
@@ -64,21 +52,21 @@ void ler_arquivo(std::string arq, Dados &dados){
         dados.matrix[i] = new int[dados.num_voos];
         for(int j = 0; j < dados.num_voos; j++){
             if(!(file >> dados.matrix[i][j])){
-                std::cerr << "[ERRO] Matriz esta com formatacao errada." << std::endl;
+                std::cerr << "[ERRO] Matriz esta com formatacao errada no " << arq << "." << std::endl;
                 throw -1;
             }
         }
     }
 
     if(!file.eof()){
-        std::cerr << "[ERRO] O arquivo esta com alguma formatacao errada. Verifique se há uma linha extra vazia no final do arquivo." << std::endl;
+        std::cerr << "[ERRO] O arquivo esta com alguma formatacao errada. Verifique se há uma linha extra vazia no final do " << arq << "." << std::endl;
         throw -1;
     }
 
     file.close();
 }
 
-void escrever_output(solucao &sol, int num_pistas, std::string name){
+void escrever_output(Solucao &sol, int num_pistas, std::string name){
     std::ofstream file("output/"+ name + ".txt");
 
     if(!file.is_open()){
@@ -88,7 +76,7 @@ void escrever_output(solucao &sol, int num_pistas, std::string name){
     file << sol.multa << std::endl;
 
     for(int i = 0; i < num_pistas; i++){
-        for(voo v : sol.pistas[i]){
+        for(Voo v : sol.pistas[i]){
             file << v.id << " ";
         }
         file << std::endl;
@@ -102,17 +90,17 @@ void print_dados(Dados &dados){
     std::cout << dados.num_pistas << std::endl;
     
     for(int i = 0; i < dados.num_voos; i++){
-        std::cout << dados.r[i] << " ";
+        std::cout << dados.array_decolagem[i] << " ";
     }
 
     std::cout << std::endl;
     for(int i = 0; i < dados.num_voos; i++){
-        std::cout << dados.c[i] << " ";
+        std::cout << dados.array_duracao[i] << " ";
     }
 
     std::cout << std::endl;
     for(int i = 0; i < dados.num_voos; i++){
-        std::cout << dados.p[i] << " ";
+        std::cout << dados.array_penalidade[i] << " ";
     }
 
     std::cout << std::endl;
@@ -126,26 +114,113 @@ void print_dados(Dados &dados){
     }
 }
 
-void print_solucao(solucao &sol, int** matrix, int num_pistas){
+// void debug_solucao(const Solucao &sol, const Dados &dados){
+//     std::cout << std::endl;
+//     std::cout << sol.multa << std::endl;
+
+//     for(int i = 0; i < dados.num_pistas; i++){
+//         for(Voo v : sol.pistas[i]){
+//             std::cout << v.id << " ";
+//         }
+//         std::cout << std::endl;
+//     }
+//     std::cout << std::endl;
+
+//     std::cout << "Multa pistas: ";
+
+//     for(int i = 0; i < dados.num_pistas; i++){
+//         std::cout << sol.multa_pistas[i] << " ";
+//     }
+
+//     std::cout << std::endl;
+//     std::cout << std::endl;
+// }
+
+void debug_pista(const std::vector<Voo> &pista, std::ofstream &file, const Dados &dados){
     int multa = 0;
-    for(int i = 0; i < num_pistas; i++){
-        int size = sol.pistas[i].size();
-        for(int v = 0, t = 0; v < size; v++){
-            if(v > 0) t += matrix[sol.pistas[i][v-1].id - 1][sol.pistas[i][v].id - 1];
-            if(t < sol.pistas[i][v].t_decolagem){ t += sol.pistas[i][v].t_decolagem - t; }
-            else if(t > sol.pistas[i][v].t_decolagem){ multa += sol.pistas[i][v].multa * (t - sol.pistas[i][v].t_decolagem); }
-            t += sol.pistas[i][v].duracao;
-        }
+    std::vector<int> multa_acumulada;
+    std::vector<int> tempos;
+
+    for(int v = 0, t = 0; v < (int) pista.size(); v++){
+        if(v > 0) t += dados.matrix[pista[v-1].id - 1][pista[v].id - 1];
+        if(t < dados.array_decolagem[pista[v].id - 1]){ t += dados.array_decolagem[pista[v].id - 1] - t; }
+        else if(t > dados.array_decolagem[pista[v].id - 1]){ multa += dados.array_penalidade[pista[v].id - 1] * (t - dados.array_decolagem[pista[v].id - 1]); }
+        tempos.push_back(t);
+        t += dados.array_duracao[pista[v].id - 1];
+        multa_acumulada.push_back(multa);
+    }
+    
+    file << "MULTAS: ";
+    for(int m : multa_acumulada){
+        file << m << " ";
     }
 
-    std::cout << multa << std::endl;
+    file << std::endl;
+
+    file << "TEMPOS: ";
+    for(int t : tempos){
+        file << t << " ";
+    }
+
+    file << std::endl;
+    file << std::endl;
+}
+
+void debug_solucao(const Solucao &sol, std::string name, const Dados &dados){
+    std::ofstream file("debug/"+ name + ".txt");
+
+    if(!file.is_open()){
+        throw std::string("[Erro] Nao foi possivel abrir a pasta debug");
+    }
+
+    for(int i = 0; i < dados.num_pistas; i++){
+        file << "Pista " << i+1 << std::endl;
+        file << "Multa total: " << sol.multa_pistas[i] << std::endl;
+
+        file << "ID: ";
+        for(Voo v : sol.pistas[i]){
+            file << v.id << " ";
+        }
+
+        file << std::endl;
+        file << "multa_acumulada: ";
+        for(Voo v : sol.pistas[i]){
+            file << v.multa_acumulada << " ";
+        }
+        file << std::endl;
+
+        file << "t_decolagem: ";
+        for(Voo v : sol.pistas[i]){
+            file << v.t_decolagem << " ";
+        }
+        file << std::endl;
+        file << std::endl;
+    }
+    file << std::endl;
+    file << std::endl;
+
+    for(int i = 0; i < dados.num_pistas; i++){
+        debug_pista(sol.pistas[i], file, dados);
+    }
+
+    file.close();
 }
 
 int main(){
-    
-    // std::string inst[] = {"n500m10E", "n700m12E", "n1000m15E"};   
-    // std::string inst[] = {"n3m10A", "n3m10B", "n3m10C", "n3m10D", "n3m10E", "n3m20A", "n3m20B", "n3m20C", "n3m20D", "n3m20E", "n3m40A", "n3m40B", "n3m40C", "n3m40D", "n3m40E", "n5m50A", "n5m50B", "n5m50C", "n5m50D", "n5m50E"}; 
-    std::string inst[] = {"n500m10E"}; 
+
+    std::vector<std::string> inst;
+
+    std::string input;
+
+    std::cout << "Cole o nome dos arquivos" << std::endl;
+    getline(std::cin, input);
+    std::stringstream ss(input);
+    std::string arq;
+
+    while (ss >> arq) {
+        inst.push_back(arq);
+    }
+
     std::vector<int> valores_otimos;
     std::vector<int> valores_ILS;
     std::vector<std::chrono::microseconds> tempo_ILS;
@@ -154,54 +229,42 @@ int main(){
         Dados dados;
 
         try{
-            ler_arquivo("input/copa/" + s + ".txt", dados);
-            // ler_arquivo("input/" + s + ".txt", dados);
+            ler_arquivo("input/" + s + ".txt", dados);
         } catch (int e){
             return e;
         }
 
-        voo voos[dados.num_voos];
-        voo voos_1[dados.num_voos];
+        Solucao sol = algoritmo_guloso(dados);
+        // valores_otimos.push_back(sol.multa);
 
-        for(int i = 0; i < dados.num_voos; i++){
-            voos[i].t_decolagem = dados.r[i];
-            voos[i].duracao = dados.c[i];
-            voos[i].multa = dados.p[i];
-            voos[i].id = i+1;
+        debug_solucao(sol, s + "_guloso", dados);
 
-            voos_1[i].t_decolagem = voos[i].t_decolagem;
-            voos_1[i].duracao = voos[i].duracao;
-            voos_1[i].multa = voos[i].multa;
-            voos_1[i].id = voos[i].id;
-        }
+        re_insertion_2(sol, dados);
 
-        solucao sol = algoritmo_guloso(voos_1, dados.matrix, dados.num_voos, dados.num_pistas);
-        valores_otimos.push_back(sol.multa);
+        debug_solucao(sol, s + "_alterado", dados);
+        // vnd(sol, dados);
 
-        vnd(sol, dados.matrix, dados.num_pistas);
-
-        int multa = 0;
+        // int multa = 0;
         
-        auto inicio = std::chrono::high_resolution_clock::now();
-        while(multa != sol.multa){
-            multa = sol.multa;
-            ils(sol, dados.matrix, dados.num_pistas);
-            sa(sol, dados.matrix, dados.num_pistas, dados.num_voos);
-            escrever_output(sol, dados.num_pistas, "copa/"+s);
-        }
-        auto fim = std::chrono::high_resolution_clock::now();
-        auto duracao = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio);
+        // auto inicio = std::chrono::high_resolution_clock::now();
+        // while(multa != sol.multa){
+        //     multa = sol.multa;
+        //     ils(sol, dados.matrix, dados.num_pistas);
+        //     sa(sol, dados.matrix, dados.num_pistas, dados.num_voos);
+        //     escrever_output(sol, dados.num_pistas, "copa/"+s);
+        // }
+        // auto fim = std::chrono::high_resolution_clock::now();
+        // auto duracao = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio);
         
-        valores_ILS.push_back(sol.multa);
-        tempo_ILS.push_back(duracao);
+        // valores_ILS.push_back(sol.multa);
+        // tempo_ILS.push_back(duracao);
         
-        // escrever_output(sol, dados.num_pistas, s);
-
+        escrever_output(sol, dados.num_pistas, s);
     }
 
     // std::cout << "=============================================================" << std::endl;
     // std::cout << "                             VND" << std::endl;
-    // std::cout << "INSTANCIA\tOTIMO\tVALOR SOLUCAO\tTEMPO (μs)\tGAP" << std::endl;
+    // std::cout << "INSTANCIA\tOTIMO\tVALOR Solucao\tTEMPO (μs)\tGAP" << std::endl;
     // std::cout << "=============================================================" << std::endl;
 
     // for(uint32_t i = 0; i < valores_otimos.size(); i++){
@@ -218,7 +281,7 @@ int main(){
 
     std::cout << "=============================================================" << std::endl;
     std::cout << "                             ILS+SA" << std::endl;
-    std::cout << "INSTANCIA\tOTIMO\tVALOR SOLUCAO\tTEMPO (μs)\tGAP" << std::endl;
+    std::cout << "INSTANCIA\tOTIMO\tVALOR Solucao\tTEMPO (μs)\tGAP" << std::endl;
     std::cout << "=============================================================" << std::endl;
 
     for(uint32_t i = 0; i < valores_otimos.size(); i++){
