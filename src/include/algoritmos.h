@@ -24,33 +24,34 @@ void calcula_multa_pista(const std::vector<Voo> &pista, int &multa, int &t, int 
 
 void atualiza_voos(std::vector<Voo> &pista, int pos_alterada, const Dados& dados);
 
-// void vnd(Solucao &otimo, const Dados &dados);
+void vnd(Solucao &otimo, const Dados &dados);
+void ils(Solucao &s, const Dados &dados);
+
 
 void swap(Solucao &sol, const Dados &dados);
 void swap_pistas(Solucao &sol, const Dados &dados);
 void re_insertion(Solucao &sol, const Dados &dados);
 void re_insertion_pistas(Solucao &sol, const Dados &dados);
 void re_insertion_2(Solucao &sol, const Dados &dados);
-// void re_insertion_2_pistas(Solucao &sol, int**matrix, int num_pistas);
-// void re_insertion_3(Solucao &sol, int**matrix, int num_pistas);
-// void re_insertion_3_pistas(Solucao &sol, int**matrix, int num_pistas);
+void re_insertion_2_pistas(Solucao &sol, const Dados &dados);
+void re_insertion_3(Solucao &sol, const Dados &dados);
+void re_insertion_3_pistas(Solucao &sol, const Dados &dados);
 
-// void rand_re_insertion(Solucao &sol, int**matrix, int num_pistas);
-// void rand_re_insertion_pistas(Solucao &sol, int**matrix, int num_pistas);
-// void rand_swap(Solucao &sol, int**matrix, int num_pistas);
-// void rand_swap_pistas(Solucao &sol, int**matrix, int num_pistas);
-// void rand_re_insertion_2(Solucao &sol, int**matrix, int num_pistas);
-// void rand_re_insertion_2_pistas(Solucao &sol, int**matrix, int num_pistas);
-// void rand_re_insertion_3(Solucao &sol, int**matrix, int num_pistas);
-// void rand_re_insertion_3_pistas(Solucao &sol, int**matrix, int num_pistas);
+void rand_swap(Solucao &sol, const Dados &dados);
+void rand_swap_pistas(Solucao &sol, const Dados &dados);
+void rand_re_insertion(Solucao &sol, const Dados &dados);
+void rand_re_insertion_pistas(Solucao &sol, const Dados &dados);
+void rand_re_insertion_2(Solucao &sol, const Dados &dados);
+void rand_re_insertion_2_pistas(Solucao &sol, const Dados &dados);
+void rand_re_insertion_3(Solucao &sol, const Dados &dados);
+void rand_re_insertion_3_pistas(Solucao &sol, const Dados &dados);
 
 
 // void sa(Solucao &otimo, int**matrix, int num_pistas, int num_voos);
 
 // long double calcula_temperatura_inicial(Solucao &sol, int**matrix, int num_pistas);
-// Solucao generate_neighbor(Solucao sol, int**matrix, int num_pistas);
+Solucao generate_neighbor(Solucao sol, const Dados &dados);
 
-// void ils(Solucao &s, int** matrix, int num_pistas);
 // Solucao pertubacao(Solucao sol, int**matrix, int num_pistas);
 
 #endif

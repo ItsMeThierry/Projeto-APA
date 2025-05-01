@@ -221,9 +221,9 @@ int main(){
         inst.push_back(arq);
     }
 
-    std::vector<int> valores_otimos;
-    std::vector<int> valores_ILS;
-    std::vector<std::chrono::microseconds> tempo_ILS;
+    std::vector<int> valores_guloso;
+    std::vector<int> valores;
+    std::vector<std::chrono::microseconds> tempo;
     
     for(std::string s : inst){
         Dados dados;
@@ -235,14 +235,15 @@ int main(){
         }
 
         Solucao sol = algoritmo_guloso(dados);
-        // valores_otimos.push_back(sol.multa);
+        valores_guloso.push_back(sol.multa);
 
-        debug_solucao(sol, s + "_guloso", dados);
+        auto inicio = std::chrono::high_resolution_clock::now();
+        vnd(sol, dados);
+        ils(sol, dados);
+        auto fim = std::chrono::high_resolution_clock::now();
+        auto duracao = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio);
 
-        re_insertion_2(sol, dados);
-
-        debug_solucao(sol, s + "_alterado", dados);
-        // vnd(sol, dados);
+        // debug_solucao(sol, s + "_alterado", dados);
 
         // int multa = 0;
         
@@ -256,51 +257,34 @@ int main(){
         // auto fim = std::chrono::high_resolution_clock::now();
         // auto duracao = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio);
         
-        // valores_ILS.push_back(sol.multa);
-        // tempo_ILS.push_back(duracao);
+        valores.push_back(sol.multa);
+        tempo.push_back(duracao);
         
         escrever_output(sol, dados.num_pistas, s);
     }
-
-    // std::cout << "=============================================================" << std::endl;
-    // std::cout << "                             VND" << std::endl;
-    // std::cout << "INSTANCIA\tOTIMO\tVALOR Solucao\tTEMPO (μs)\tGAP" << std::endl;
-    // std::cout << "=============================================================" << std::endl;
-
-    // for(uint32_t i = 0; i < valores_otimos.size(); i++){
-    //     float gap = ((float)(valores_otimos[i]-valores_VND[i])/valores_otimos[i])*100.00f;
-    //     std::cout << std::left << std::setw(16) << inst[i]
-    //               << std::left << std::setw(8) << valores_otimos[i]
-    //               << std::right << std::setw(13) << valores_VND[i]
-    //               << std::right << std::setw(13) << tempo_VND[i].count()
-    //               << std::right << std::setprecision(3) << std::setw(9) << gap << std::endl; 
-    // }
-
-    // std::cout << std::endl;
-    std::cout << std::endl;
 
     std::cout << "=============================================================" << std::endl;
     std::cout << "                             ILS+SA" << std::endl;
     std::cout << "INSTANCIA\tOTIMO\tVALOR Solucao\tTEMPO (μs)\tGAP" << std::endl;
     std::cout << "=============================================================" << std::endl;
 
-    for(uint32_t i = 0; i < valores_otimos.size(); i++){
-        float gap = ((float)(valores_otimos[i]-valores_ILS[i])/valores_otimos[i])*100.00f;
+    for(uint32_t i = 0; i < valores_guloso.size(); i++){
+        float gap = ((float)(valores_guloso[i]-valores[i])/valores_guloso[i])*100.00f;
         std::cout << std::left << std::setw(16) << inst[i]
-                  << std::left << std::setw(8) << valores_otimos[i]
-                  << std::right << std::setw(13) << valores_ILS[i]
-                  << std::right << std::setw(13) << tempo_ILS[i].count()
+                  << std::left << std::setw(8) << valores_guloso[i]
+                  << std::right << std::setw(13) << valores[i]
+                  << std::right << std::setw(13) << tempo[i].count()
                   << std::right << std::setprecision(3) << std::setw(9) << gap << std::endl; 
     }
 
-    // std::cout << std::endl;
+    std::cout << std::endl;
 
-    // float media = 0;
-    // for(uint32_t i = 0; i < valores_otimos.size(); i++){
-    //     media += ((float)(valores_otimos[i]-valores_ILS[i])/valores_otimos[i])*100.00f;
-    // }
+    float media = 0;
+    for(uint32_t i = 0; i < valores_guloso.size(); i++){
+        media += ((float)(valores_guloso[i]-valores[i])/valores_guloso[i])*100.00f;
+    }
 
-    // std::cout << media/valores_otimos.size() << std::endl;
+    std::cout << media/valores_guloso.size() << std::endl;
 
     return 0;
 }
