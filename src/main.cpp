@@ -238,25 +238,17 @@ int main(){
         valores_guloso.push_back(sol.multa);
 
         auto inicio = std::chrono::high_resolution_clock::now();
+        std::cout << "VND\n";
         vnd(sol, dados);
+        std::cout << "ILS\n";
         ils(sol, dados);
+        std::cout << "SA\n";
+        sa(sol, dados);
         auto fim = std::chrono::high_resolution_clock::now();
         auto duracao = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio);
 
         // debug_solucao(sol, s + "_alterado", dados);
 
-        // int multa = 0;
-        
-        // auto inicio = std::chrono::high_resolution_clock::now();
-        // while(multa != sol.multa){
-        //     multa = sol.multa;
-        //     ils(sol, dados.matrix, dados.num_pistas);
-        //     sa(sol, dados.matrix, dados.num_pistas, dados.num_voos);
-        //     escrever_output(sol, dados.num_pistas, "copa/"+s);
-        // }
-        // auto fim = std::chrono::high_resolution_clock::now();
-        // auto duracao = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio);
-        
         valores.push_back(sol.multa);
         tempo.push_back(duracao);
         

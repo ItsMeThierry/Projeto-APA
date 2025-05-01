@@ -53,21 +53,6 @@ Solucao algoritmo_guloso(const Dados &dados){
     return sol;
 }
 
-// int calcula_multa_pista(const std::vector<Voo> &pista){
-//     int multa = 0;
-
-//     for(Voo v : pista){ multa += v.multa_acumulada; } //O(n)
-    
-//     return multa;
-// }
-
-// void calcula_tempo_e_multa(const std::vector<Voo> &pista, int &multa, int &t, int pos_anterior, int pos_atual, const Dados& dados){
-//     if(pos_anterior > 0) t += dados.matrix[pista[pos_anterior].id - 1][pista[pos_atual].id - 1];
-//     if(t < dados.array_decolagem[pista[pos_atual].id - 1]){ t += dados.array_decolagem[pista[pos_atual].id - 1] - t; }
-//     else if(t > dados.array_decolagem[pista[pos_atual].id - 1]){ multa += dados.array_penalidade[pista[pos_atual].id - 1] * (t - dados.array_decolagem[pista[pos_2].id - 1]); }
-//     t += dados.array_duracao[pista[pos_atual].id - 1];
-// }
-
 int calcula_multa_pista(const std::vector<Voo> &pista, int pos_1, int pos_2, const Dados& dados){
     int multa = (pos_1 == 0) ? 0 : pista[pos_1 - 1].multa_acumulada;
     int t = (pos_1 == 0) ? 0 : pista[pos_1 - 1].t_decolagem + dados.array_duracao[pista[pos_1 - 1].id - 1];
@@ -146,6 +131,7 @@ void vnd(Solucao &otimo, const Dados &dados){
 
         if(otimo.multa < menor_multa){
             menor_multa = otimo.multa;
+            std::cout << otimo.multa << std::endl;
 
             // for(int i = 0; i < dados.num_pistas; i++){
             //     if(!otimo.pistas[i].empty() && otimo.multa_pistas[i] != otimo.pistas[i].back().multa_acumulada){
@@ -170,18 +156,63 @@ void vnd(Solucao &otimo, const Dados &dados){
 void ils(Solucao &s, const Dados &dados){
     int tentativa = 1;
 
-    while(tentativa < 500){
-        Solucao s_ = generate_neighbor(s, dados);
+    while(tentativa < 100){
+        Solucao s_ = pertubacao(s, dados);
         vnd(s_, dados);
 
         if(s_.multa < s.multa){
-            // std::cout << s_.multa << std::endl;
+            std::cout << s_.multa << std::endl;
             tentativa = 1;
             s = s_; // Talvez tenha como otimizar isso?
         } else{
             tentativa++;
         }
     }
+}
+
+Solucao pertubacao(Solucao sol, const Dados &dados){
+    std::uniform_int_distribution<int> dist(1, 8);
+
+    for(int i = 0; i < 2; i++){
+        int k = dist(gen);
+
+        switch(k) {
+            case 1:
+                // std::cout << "SWAP\n";
+                rand_swap(sol, dados);
+                break;
+            case 2:
+                // std::cout << "RE_INSERTION\n";
+                rand_re_insertion(sol, dados);
+                break;
+            case 3:
+                // std::cout << "SWAP_PISTAS\n";
+                rand_swap_pistas(sol, dados);
+                break;
+            case 4:
+                // std::cout << "RE_INSERTION_PISTAS\n";
+                rand_re_insertion_pistas(sol, dados);
+                break;
+            case 5:
+                // std::cout << "RE_INSERTION_2\n";
+                rand_re_insertion_2(sol, dados);
+                break;
+            case 6:
+                // std::cout << "RE_INSERTION_2_PISTAS\n";
+                rand_re_insertion_2_pistas(sol, dados);
+                break;
+            case 7:
+                // std::cout << "RE_INSERTION_3\n";
+                rand_re_insertion_3(sol, dados);
+                break;
+            case 8:
+                // std::cout << "RE_INSERTION_3_PISTAS\n";
+                rand_re_insertion_3_pistas(sol, dados);
+                break;
+        }
+    }
+
+    return sol;
 }
 
 void swap(Solucao &sol, const Dados &dados) {
@@ -1261,59 +1292,57 @@ void rand_re_insertion_3_pistas(Solucao &sol, const Dados &dados) {
     sol.multa_pistas[pista_2] = multa_pista_2;
 }
 
-// void sa(Solucao &otimo, const Dados &dados, int num_voos) {
-//     long double temperatura_inicial = calcula_temperatura_inicial(otimo, matrix, num_pistas);
-//     long double temperatura_final = temperatura_inicial / num_voos;
-//     long double temperatura = temperatura_inicial;
-//     long double coeficiente = 0.995;
-//     int max_iter = num_voos * 50;
-//     Solucao s_atual = otimo;
+void sa(Solucao &otimo, const Dados &dados) {
+    long double temperatura_inicial = calcula_temperatura_inicial(otimo, dados);
+    long double temperatura_final = temperatura_inicial / 100;
+    long double temperatura = temperatura_inicial;
+    long double coeficiente = 0.995;
+    int max_iter = 5000;
+    Solucao s_atual = otimo;
+
+    std::cout << "T0: " << temperatura_inicial;
     
-//     // std::cout << "T0: " << temperatura_inicial << '\n';
+    while(temperatura > temperatura_final){
+        for(int l = 0; l < max_iter; l++){
+            Solucao s_ = generate_neighbor(s_atual, dados);
+            int variacao = s_.multa - s_atual.multa;
 
-//     while(temperatura > temperatura_final){
-//         for(int l = 0; l < max_iter; l++){
-//             Solucao s_ = generate_neighbor(s_atual, matrix, num_pistas);
-//             int variacao = s_.multa - s_atual.multa;
+            if(variacao <= 0){
+                s_atual = s_; // Copia
 
-//             if(variacao <= 0){
-//                 s_atual = s_;
+                if(s_atual.multa < otimo.multa){
+                    otimo = s_atual; // Copia
+                    std::cout << s_atual.multa << '\n';
+                    l = 0;
+                }
+            } else{
+                std::uniform_real_distribution<> dist(0, 1);
+                double r = dist(gen);
+                long double taxa = (((long double) variacao) / temperatura) * (-1);
+                if(r < exp(taxa)){
+                    s_atual = s_; // Copia
+                }
+            }
+        }
 
-//                 if(s_atual.multa < otimo.multa){
-//                     otimo = s_atual;
-//                     // std::cout << s_atual.multa << '\n';
-//                     l = 0;
-//                 }
-//             } else{
-//                 std::uniform_real_distribution<> dist(0, 1);
-//                 double r = dist(gen);
-//                 long double taxa = (((long double) variacao) / temperatura) * (-1);
-//                 // // std::cout << "taxa " << taxa << "\n";
-//                 if(r < exp(taxa)){
-//                     s_atual = s_;
-//                     // // std::cout << s_atual.multa << '\n';
-//                 }
-//             }
-//         }
+        temperatura *= coeficiente;
+        std::cout << "T: " << temperatura << '\n';
+    }
+}
 
-//         temperatura *= coeficiente;
-//         // std::cout << "T: " << temperatura << '\n';
-//     }
-// }
+long double calcula_temperatura_inicial(Solucao &sol, const Dados &dados){
+    double sum_variacao = 0;
 
-// long double calcula_temperatura_inicial(Solucao &sol, int**matrix, int num_pistas){
-//     double sum_variacao = 0;
+    for(int i = 0; i < 1000; i++){
+        Solucao s = generate_neighbor(sol, dados);
 
-//     for(int i = 0; i < 1000; i++){
-//         Solucao s = generate_neighbor(sol, matrix, num_pistas);
+        sum_variacao += (double) abs(s.multa - sol.multa) / sol.multa;
+    }
 
-//         sum_variacao += (double) abs(s.multa - sol.multa) / sol.multa;
-//     }
+    double media = (double) sum_variacao / 1000;
 
-//     double media = (double) sum_variacao / 1000;
-
-//     return exp(media / 5);
-// }
+    return exp(media / 5);
+}
 
 Solucao generate_neighbor(Solucao sol, const Dados &dados){
     std::uniform_int_distribution<int> dist(1, 8);
@@ -1394,54 +1423,3 @@ Solucao generate_neighbor(Solucao sol, const Dados &dados){
 
     return sol;
 }
-
-// // Solucao pertubacao(Solucao sol, int**matrix, int num_pistas){
-// //     for(int i = 0; i < num_pistas; i++){
-// //         rand_swap_pistas(sol, matrix, num_pistas);
-// //         rand_re_insertion_2_pistas(sol, matrix, num_pistas);
-// //         // rand_re_insertion_3_pistas(sol, matrix, num_pistas);
-// //     }
-
-// //     int multa = 0;
-// //     for(int i = 0; i < num_pistas; i++){
-// //         multa += calcula_multa_pista(sol.pistas[i], matrix);
-// //     }
-
-// //     sol.multa = multa;
-    
-// //     return sol;
-// // }
-
-// Solucao pertubacao(Solucao sol, int**matrix, int num_pistas){
-//     if(num_pistas == 1){
-//         return sol;
-//     }
-
-//     std::vector<voo> voos_deslocados[num_pistas];
-
-//     for(int i = 0; i < num_pistas; i++){
-//         for(int j = 0; j < 3; j++){
-//             if(sol.pistas[i].size() > 0){
-//                 voos_deslocados[i].push_back(sol.pistas[i].front());
-//                 sol.pistas[i].erase(sol.pistas[i].begin());
-//             }
-//         }
-//     }
-
-//     for(int i = 0; i < num_pistas; i++){
-//         int size = voos_deslocados[(i+1) % num_pistas].size();
-
-//         for(int j = size - 1; j >= 0; j--){
-//             sol.pistas[i].insert(sol.pistas[i].begin(), voos_deslocados[(i+1) % num_pistas][j]);
-//         }
-//     }
-
-//     int multa = 0;
-//     for(int i = 0; i < num_pistas; i++){
-//         multa += calcula_multa_pista(sol.pistas[i], matrix);
-//     }
-
-//     sol.multa = multa;
-    
-//     return sol;
-// }

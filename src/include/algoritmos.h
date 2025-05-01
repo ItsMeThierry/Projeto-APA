@@ -47,11 +47,11 @@ void rand_re_insertion_3(Solucao &sol, const Dados &dados);
 void rand_re_insertion_3_pistas(Solucao &sol, const Dados &dados);
 
 
-// void sa(Solucao &otimo, int**matrix, int num_pistas, int num_voos);
+void sa(Solucao &otimo, const Dados &dados);
 
-// long double calcula_temperatura_inicial(Solucao &sol, int**matrix, int num_pistas);
+long double calcula_temperatura_inicial(Solucao &sol, const Dados &dados);
 Solucao generate_neighbor(Solucao sol, const Dados &dados);
 
-// Solucao pertubacao(Solucao sol, int**matrix, int num_pistas);
+Solucao pertubacao(Solucao sol, const Dados &dados);
 
 #endif
